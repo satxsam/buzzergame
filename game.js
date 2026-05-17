@@ -281,29 +281,77 @@ function getAudioContext() {
   return audioCtx;
 }
 
-function playBeep(freq = 440, duration = 0.5, type = 'sine', volume = 0.3) {
+function playBuzzIn() {
   try {
     const ctx = getAudioContext();
+    const now = ctx.currentTime;
+
     const osc = ctx.createOscillator();
+    osc.type = 'square';
+    osc.frequency.value = 175;
+
     const gain = ctx.createGain();
+    gain.gain.value = 0;
+
+    // Chop the gain on/off at ~38 Hz for 0.55s — gives the classic rapid-buzz rattle
+    const chopHz = 38;
+    const chopPeriod = 1 / chopHz;
+    const totalDur = 0.55;
+    for (let t = 0; t < totalDur; t += chopPeriod) {
+      gain.gain.setValueAtTime(0.45, now + t);
+      gain.gain.setValueAtTime(0, now + t + chopPeriod * 0.5);
+    }
+    // Mild overall decay so it doesn't cut off abruptly
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(1, now);
+    master.gain.exponentialRampToValueAtTime(0.001, now + totalDur + 0.05);
+
     osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    gain.gain.setValueAtTime(volume, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + duration);
-  } catch (e) { /* ignore audio errors */ }
+    gain.connect(master);
+    master.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + totalDur + 0.1);
+  } catch (e) {}
+}
+
+function playCorrect() {
+  try {
+    const ctx = getAudioContext();
+    // Quick ascending three-note chime
+    [[523, 0], [659, 0.12], [784, 0.24], [1047, 0.38]].forEach(([freq, offset]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, ctx.currentTime + offset);
+      gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + offset);
+      osc.stop(ctx.currentTime + offset + 0.4);
+    });
+  } catch (e) {}
 }
 
 function playTimerExpired() {
-  playBeep(300, 0.8, 'sine', 0.25);
-  setTimeout(() => playBeep(250, 0.6, 'sine', 0.2), 300);
-}
-
-function playBuzzIn() {
-  playBeep(880, 0.15, 'square', 0.2);
+  try {
+    const ctx = getAudioContext();
+    // Three descending "wah-wah-wah" tones
+    [[380, 0], [300, 0.28], [230, 0.56]].forEach(([freq, offset]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + offset);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.75, ctx.currentTime + offset + 0.22);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + offset);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.25);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + offset);
+      osc.stop(ctx.currentTime + offset + 0.28);
+    });
+  } catch (e) {}
 }
 
 // ── DOM REFS ───────────────────────────────────────────────
@@ -678,6 +726,7 @@ function handleCorrect() {
   }
 
   state.scores[activeTeam] += state.currentClue.clue.points;
+  playCorrect();
   closeClueScreen(true);
 }
 
