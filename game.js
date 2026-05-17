@@ -1,0 +1,963 @@
+/* ============================================================
+   Jeopardy Game — game.js
+   ============================================================ */
+
+'use strict';
+
+// ── DEFAULT GAME DATA ──────────────────────────────────────
+const DEFAULT_GAME = {
+  title: "Quizardy!",
+  teams: ["Team 1", "Team 2", "Team 3"],
+  categories: [
+    {
+      name: "Science",
+      clues: [
+        { points: 100, answer: "This gas makes up about 78% of Earth's atmosphere", question: "What is nitrogen?" },
+        { points: 200, answer: "The powerhouse of the cell", question: "What is the mitochondria?" },
+        { points: 300, answer: "This scientist published the theory of general relativity in 1915", question: "Who is Albert Einstein?" },
+        { points: 400, answer: "The speed of light in a vacuum, approximately 300,000 kilometers per second", question: "What is the speed of light?" },
+        { points: 500, answer: "This element has the highest electronegativity on the periodic table", question: "What is fluorine?" }
+      ]
+    },
+    {
+      name: "History",
+      clues: [
+        { points: 100, answer: "This ancient wonder was located in Alexandria, Egypt", question: "What is the Lighthouse of Alexandria?" },
+        { points: 200, answer: "The year the Berlin Wall fell", question: "What is 1989?" },
+        { points: 300, answer: "This empire was ruled by Genghis Khan in the 13th century", question: "What is the Mongol Empire?" },
+        { points: 400, answer: "She was the last active ruler of the Ptolemaic Kingdom of Egypt", question: "Who is Cleopatra?" },
+        { points: 500, answer: "This 1215 document limited the power of the English king and is considered a cornerstone of democracy", question: "What is the Magna Carta?" }
+      ]
+    },
+    {
+      name: "Geography",
+      clues: [
+        { points: 100, answer: "The largest ocean on Earth", question: "What is the Pacific Ocean?" },
+        { points: 200, answer: "This country has the most natural lakes in the world", question: "What is Canada?" },
+        { points: 300, answer: "The world's longest river by length", question: "What is the Nile?" },
+        { points: 400, answer: "This tiny European principality is the world's second smallest country by area", question: "What is Monaco?" },
+        { points: 500, answer: "The only country that borders both the Atlantic and Indian Oceans", question: "What is South Africa?" }
+      ]
+    },
+    {
+      name: "Pop Culture",
+      clues: [
+        { points: 100, answer: "This fictional wizard school is attended by Harry Potter", question: "What is Hogwarts?" },
+        { points: 200, answer: "She played Black Widow in the Marvel Cinematic Universe", question: "Who is Scarlett Johansson?" },
+        { points: 300, answer: "This streaming platform released 'Stranger Things'", question: "What is Netflix?" },
+        { points: 400, answer: "Released in 1977, this film franchise features a Galactic Empire and a Rebel Alliance", question: "What is Star Wars?" },
+        { points: 500, answer: "This Beyoncé album from 2016 featured the hit single 'Formation'", question: "What is Lemonade?" }
+      ]
+    },
+    {
+      name: "Sports",
+      clues: [
+        { points: 100, answer: "The number of players on a standard soccer team on the field", question: "What is eleven?" },
+        { points: 200, answer: "This country has won the most FIFA World Cup titles with five championships", question: "What is Brazil?" },
+        { points: 300, answer: "This NBA player is known as 'The King' and won championships with three different teams", question: "Who is LeBron James?" },
+        { points: 400, answer: "The Grand Slam tennis tournament played on clay in Paris", question: "What is the French Open (Roland Garros)?" },
+        { points: 500, answer: "This swimmer holds the record for most Olympic gold medals of any athlete in history", question: "Who is Michael Phelps?" }
+      ]
+    },
+    {
+      name: "Food & Drink",
+      clues: [
+        { points: 100, answer: "The main ingredient in guacamole", question: "What is avocado?" },
+        { points: 200, answer: "This Italian cheese is traditionally used on a Margherita pizza", question: "What is mozzarella?" },
+        { points: 300, answer: "This Japanese rice wine is often served warm", question: "What is sake?" },
+        { points: 400, answer: "The country of origin for Worcestershire sauce", question: "What is England?" },
+        { points: 500, answer: "This French term describes the method of cooking food slowly in vacuum-sealed bags in a water bath", question: "What is sous vide?" }
+      ]
+    }
+  ]
+};
+
+// ── STATE ──────────────────────────────────────────────────
+const state = {
+  game: null,
+
+  // Scores indexed by team index
+  scores: [0, 0, 0],
+
+  // usedCells[catIdx][clueIdx] = true
+  usedCells: [],
+
+  // Current clue info
+  currentClue: null,         // { catIdx, clueIdx, category, clue }
+
+  // Buzzer state
+  buzzerArmed: false,
+  buzzResolved: false,       // true after the randomization window has fired
+  buzzEvents: [],            // { teamIdx, timestamp }
+  buzzedKeys: new Set(),     // which team keys have buzzed this round
+  displayedBuzzOrder: [],    // resolved buzz order (team indices) after window
+  currentBuzzerPos: 0,       // which position in displayedBuzzOrder is "active"
+  displayDelayTimer: null,
+  questionRevealed: false,
+
+  // Timer
+  timerRunning: false,
+  timerStart: null,
+  timerDuration: 15,         // seconds
+  timerInterval: null,
+  timerExpired: false,
+
+  // Settings
+  settings: {
+    teamNames: ["Team 1", "Team 2", "Team 3"],
+    teamWeights: [1.0, 1.0, 1.0],
+    randomWindow: 300,       // ms
+    displayDelay: 500,       // ms
+    timerDuration: 15        // seconds
+  }
+};
+
+// ── MINIMAL YAML PARSER ────────────────────────────────────
+function parseYAML(text) {
+  const lines = text.split('\n');
+  return parseBlock(lines, 0, 0).value;
+}
+
+function stripComment(line) {
+  // Remove inline YAML comments (naive but sufficient for our format)
+  let inSingle = false, inDouble = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === "'" && !inDouble) inSingle = !inSingle;
+    else if (c === '"' && !inSingle) inDouble = !inDouble;
+    else if (c === '#' && !inSingle && !inDouble) {
+      return line.slice(0, i).trimEnd();
+    }
+  }
+  return line;
+}
+
+function getIndent(line) {
+  return line.match(/^(\s*)/)[1].length;
+}
+
+function parseBlock(lines, startLine, baseIndent) {
+  // Skip blank/comment-only lines
+  let i = startLine;
+  while (i < lines.length) {
+    const stripped = stripComment(lines[i]).trimEnd();
+    if (stripped.trim() !== '') break;
+    i++;
+  }
+  if (i >= lines.length) return { value: null, nextLine: i };
+
+  const firstLine = stripComment(lines[i]).trimEnd();
+  const indent = getIndent(firstLine);
+  const trimmed = firstLine.trim();
+
+  // Detect list block
+  if (trimmed.startsWith('- ') || trimmed === '-') {
+    return parseList(lines, i, indent);
+  }
+
+  // Detect mapping block
+  if (trimmed.includes(':') && !trimmed.startsWith('"') && !trimmed.startsWith("'")) {
+    return parseMapping(lines, i, indent);
+  }
+
+  return { value: parseScalar(trimmed), nextLine: i + 1 };
+}
+
+function parseMapping(lines, startLine, baseIndent) {
+  const obj = {};
+  let i = startLine;
+
+  while (i < lines.length) {
+    const raw = stripComment(lines[i]).trimEnd();
+    if (raw.trim() === '') { i++; continue; }
+    const indent = getIndent(raw);
+    if (indent < baseIndent) break;
+    if (indent > baseIndent) { i++; continue; } // shouldn't happen in well-formed YAML
+
+    const trimmed = raw.trim();
+
+    // Handle list item at same level — shouldn't be in a mapping but be safe
+    if (trimmed.startsWith('- ')) break;
+
+    const colonIdx = trimmed.indexOf(':');
+    if (colonIdx === -1) { i++; continue; }
+
+    const key = trimmed.slice(0, colonIdx).trim();
+    const rest = trimmed.slice(colonIdx + 1).trim();
+
+    if (rest !== '') {
+      // Inline value
+      obj[key] = parseScalar(rest);
+      i++;
+    } else {
+      // Value is on the next lines
+      i++;
+      // Peek at next non-blank line
+      let nextReal = i;
+      while (nextReal < lines.length && stripComment(lines[nextReal]).trim() === '') nextReal++;
+      if (nextReal >= lines.length) {
+        obj[key] = null;
+      } else {
+        const result = parseBlock(lines, nextReal, indent + 1);
+        obj[key] = result.value;
+        i = result.nextLine;
+      }
+    }
+  }
+  return { value: obj, nextLine: i };
+}
+
+function parseList(lines, startLine, baseIndent) {
+  const arr = [];
+  let i = startLine;
+
+  while (i < lines.length) {
+    const raw = stripComment(lines[i]).trimEnd();
+    if (raw.trim() === '') { i++; continue; }
+    const indent = getIndent(raw);
+    if (indent < baseIndent) break;
+    if (indent > baseIndent) { i++; continue; }
+
+    const trimmed = raw.trim();
+    if (!trimmed.startsWith('- ') && trimmed !== '-') break;
+
+    const rest = trimmed.startsWith('- ') ? trimmed.slice(2).trim() : '';
+
+    if (rest === '') {
+      // Next line(s) are the value
+      i++;
+      let nextReal = i;
+      while (nextReal < lines.length && stripComment(lines[nextReal]).trim() === '') nextReal++;
+      if (nextReal < lines.length) {
+        const childIndent = getIndent(stripComment(lines[nextReal]));
+        const result = parseBlock(lines, nextReal, childIndent);
+        arr.push(result.value);
+        i = result.nextLine;
+      } else {
+        arr.push(null);
+      }
+    } else if (rest.includes(':') && !rest.startsWith('"') && !rest.startsWith("'")) {
+      // Inline mapping start within list item — e.g. "- name: Science"
+      // Build a sub-mapping starting from rest on this line, then continuation lines at higher indent
+      const subLines = [' '.repeat(baseIndent + 2) + rest];
+      i++;
+      // Collect continuation lines
+      while (i < lines.length) {
+        const subRaw = stripComment(lines[i]).trimEnd();
+        if (subRaw.trim() === '') { subLines.push(''); i++; continue; }
+        const subIndent = getIndent(subRaw);
+        if (subIndent <= baseIndent) break;
+        subLines.push(subRaw);
+        i++;
+      }
+      const result = parseMapping(subLines, 0, baseIndent + 2);
+      arr.push(result.value);
+    } else {
+      arr.push(parseScalar(rest));
+      i++;
+    }
+  }
+  return { value: arr, nextLine: i };
+}
+
+function parseScalar(s) {
+  if (s === '' || s === 'null' || s === '~') return null;
+  if (s === 'true') return true;
+  if (s === 'false') return false;
+  if (/^-?\d+(\.\d+)?$/.test(s)) return Number(s);
+  // Strip surrounding quotes
+  if ((s.startsWith('"') && s.endsWith('"')) ||
+      (s.startsWith("'") && s.endsWith("'"))) {
+    return s.slice(1, -1);
+  }
+  return s;
+}
+
+// ── AUDIO ──────────────────────────────────────────────────
+let audioCtx = null;
+
+function getAudioContext() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playBeep(freq = 440, duration = 0.5, type = 'sine', volume = 0.3) {
+  try {
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(volume, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration);
+  } catch (e) { /* ignore audio errors */ }
+}
+
+function playTimerExpired() {
+  playBeep(300, 0.8, 'sine', 0.25);
+  setTimeout(() => playBeep(250, 0.6, 'sine', 0.2), 300);
+}
+
+function playBuzzIn() {
+  playBeep(880, 0.15, 'square', 0.2);
+}
+
+// ── DOM REFS ───────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+const dom = {
+  boardScreen:       () => $('board-screen'),
+  clueScreen:        () => $('clue-screen'),
+  gameTitle:         () => $('game-title'),
+  gameBoard:         () => $('game-board'),
+  scoreboard:        () => $('scoreboard'),
+  settingsBtn:       () => $('settings-btn'),
+  modalOverlay:      () => $('modal-overlay'),
+  closeSettingsBtn:  () => $('close-settings-btn'),
+  loadGameBtn:       () => $('load-game-btn'),
+  fileInput:         () => $('file-input'),
+  resetScoresBtn:    () => $('reset-scores-btn'),
+  clueCategory:      () => $('clue-category'),
+  cluePointsBadge:   () => $('clue-points-badge'),
+  clueAnswerText:    () => $('clue-answer-text'),
+  showQuestionBtn:   () => $('show-question-btn'),
+  questionReveal:    () => $('question-reveal'),
+  openBuzzersBtn:    () => $('open-buzzers-btn'),
+  buzzOrderList:     () => $('buzz-order-list'),
+  timerBtn:          () => $('timer-btn'),
+  timerCount:        () => $('timer-count'),
+  timerBar:          () => $('timer-bar'),
+  correctBtn:        () => $('correct-btn'),
+  wrongBtn:          () => $('wrong-btn'),
+  returnBtn:         () => $('return-btn'),
+  confirmOverlay:    () => $('confirm-overlay'),
+  confirmYes:        () => $('confirm-yes'),
+  confirmNo:         () => $('confirm-no'),
+};
+
+// Settings inputs (dynamically looked up)
+function getSettingsInputs() {
+  return {
+    teamNames:   [
+      $('setting-team-name-0'),
+      $('setting-team-name-1'),
+      $('setting-team-name-2')
+    ],
+    teamWeights: [
+      $('setting-weight-0'),
+      $('setting-weight-1'),
+      $('setting-weight-2')
+    ],
+    weightVals: [
+      $('setting-weight-val-0'),
+      $('setting-weight-val-1'),
+      $('setting-weight-val-2')
+    ],
+    randomWindow:    $('setting-random-window'),
+    randomWindowVal: $('setting-random-window-val'),
+    displayDelay:    $('setting-display-delay'),
+    displayDelayVal: $('setting-display-delay-val'),
+    timerDuration:   $('setting-timer-duration'),
+    timerDurationVal:$('setting-timer-duration-val'),
+  };
+}
+
+// ── INIT ───────────────────────────────────────────────────
+function init() {
+  loadGameData(DEFAULT_GAME);
+  bindEvents();
+}
+
+function loadGameData(gameData) {
+  state.game = gameData;
+
+  // Apply team names from game file, but respect any existing settings overrides
+  // On first load, sync team names from game data
+  state.settings.teamNames = (gameData.teams || ['Team 1', 'Team 2', 'Team 3'])
+    .slice(0, 3)
+    .map((n, i) => n || `Team ${i + 1}`);
+
+  // Reset used cells
+  state.usedCells = gameData.categories.map(cat => cat.clues.map(() => false));
+
+  // Reset scores
+  state.scores = [0, 0, 0];
+
+  renderBoard();
+}
+
+// ── RENDER BOARD ───────────────────────────────────────────
+function renderBoard() {
+  const { game, settings } = state;
+  if (!game) return;
+
+  dom.gameTitle().textContent = game.title || 'Jeopardy';
+
+  // Scoreboard
+  const sb = dom.scoreboard();
+  sb.innerHTML = '';
+
+  settings.teamNames.forEach((name, i) => {
+    if (i > 0) {
+      const div = document.createElement('div');
+      div.className = 'score-divider';
+      sb.appendChild(div);
+    }
+    const teamEl = document.createElement('div');
+    teamEl.className = 'team-score';
+    teamEl.id = `team-score-${i}`;
+    teamEl.innerHTML = `
+      <div class="team-name">${escHtml(name)}</div>
+      <div class="team-points" id="team-points-${i}">${formatScore(state.scores[i])}</div>
+    `;
+    sb.appendChild(teamEl);
+  });
+
+  // Game board
+  const board = dom.gameBoard();
+  board.innerHTML = '';
+
+  // Category headers
+  game.categories.forEach(cat => {
+    const header = document.createElement('div');
+    header.className = 'category-header';
+    header.textContent = cat.name;
+    board.appendChild(header);
+  });
+
+  // Clue cells — row by row (5 rows × 6 cols)
+  for (let row = 0; row < 5; row++) {
+    game.categories.forEach((cat, catIdx) => {
+      const clue = cat.clues[row];
+      if (!clue) {
+        board.appendChild(document.createElement('div'));
+        return;
+      }
+      const cell = document.createElement('div');
+      cell.className = 'clue-cell' + (state.usedCells[catIdx][row] ? ' used' : '');
+      cell.dataset.cat = catIdx;
+      cell.dataset.clue = row;
+      cell.innerHTML = `<span>${clue.points}</span>`;
+      cell.addEventListener('click', () => onClueClick(catIdx, row));
+      board.appendChild(cell);
+    });
+  }
+}
+
+function updateScoreboard() {
+  state.settings.teamNames.forEach((name, i) => {
+    const nameEl = document.getElementById(`team-score-${i}`)?.querySelector('.team-name');
+    const pointsEl = document.getElementById(`team-points-${i}`);
+    if (nameEl) nameEl.textContent = name;
+    if (pointsEl) pointsEl.textContent = formatScore(state.scores[i]);
+  });
+}
+
+function formatScore(n) {
+  if (n < 0) return `-${Math.abs(n).toLocaleString()} pts`;
+  return `${n.toLocaleString()} pts`;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ── CLUE FLOW ──────────────────────────────────────────────
+function onClueClick(catIdx, clueIdx) {
+  if (state.usedCells[catIdx][clueIdx]) return;
+
+  const cat = state.game.categories[catIdx];
+  const clue = cat.clues[clueIdx];
+
+  state.currentClue = { catIdx, clueIdx, category: cat, clue };
+  openClueScreen();
+}
+
+function openClueScreen() {
+  const { currentClue } = state;
+  if (!currentClue) return;
+
+  // Reset clue-screen state
+  resetBuzzerState();
+  stopTimer();
+  state.timerExpired = false;
+  state.questionRevealed = false;
+
+  // Populate UI
+  dom.clueCategory().textContent = currentClue.category.name;
+  dom.cluePointsBadge().textContent = `${currentClue.clue.points} pts`;
+  dom.clueAnswerText().textContent = currentClue.clue.answer;
+  dom.questionReveal().textContent = currentClue.clue.question;
+  dom.questionReveal().classList.remove('visible');
+  dom.showQuestionBtn().textContent = 'Show Answer';
+
+  dom.timerCount().textContent = state.settings.timerDuration + 's';
+  dom.timerCount().classList.remove('expired');
+  dom.timerBar().style.width = '100%';
+  dom.timerBar().classList.remove('low');
+  dom.timerBtn().textContent = 'START TIMER';
+
+  dom.buzzOrderList().innerHTML = '';
+
+  dom.clueScreen().classList.remove('hidden');
+}
+
+function closeClueScreen(markUsed = true) {
+  if (markUsed && state.currentClue) {
+    const { catIdx, clueIdx } = state.currentClue;
+    state.usedCells[catIdx][clueIdx] = true;
+    // Dim the cell on the board
+    const cells = document.querySelectorAll('.clue-cell');
+    cells.forEach(cell => {
+      if (Number(cell.dataset.cat) === catIdx && Number(cell.dataset.clue) === clueIdx) {
+        cell.classList.add('used');
+      }
+    });
+  }
+
+  stopTimer();
+  resetBuzzerState();
+  state.currentClue = null;
+  dom.clueScreen().classList.add('hidden');
+  updateScoreboard();
+}
+
+// ── BUZZER LOGIC ───────────────────────────────────────────
+function resetBuzzerState() {
+  state.buzzerArmed = false;
+  state.buzzResolved = false;
+  state.buzzEvents = [];
+  state.buzzedKeys = new Set();
+  state.displayedBuzzOrder = [];
+  state.currentBuzzerPos = 0;
+  if (state.displayDelayTimer) {
+    clearTimeout(state.displayDelayTimer);
+    state.displayDelayTimer = null;
+  }
+  dom.openBuzzersBtn().textContent = 'OPEN BUZZERS';
+  dom.openBuzzersBtn().classList.remove('armed');
+  dom.buzzOrderList().innerHTML = '';
+}
+
+function toggleBuzzers() {
+  if (state.buzzerArmed) {
+    disarmBuzzers();
+  } else {
+    armBuzzers();
+  }
+}
+
+function armBuzzers() {
+  state.buzzerArmed = true;
+  state.buzzResolved = false;
+  state.buzzEvents = [];
+  state.buzzedKeys = new Set();
+  state.displayedBuzzOrder = [];
+  state.currentBuzzerPos = 0;
+  dom.buzzOrderList().innerHTML = '';
+  dom.openBuzzersBtn().textContent = 'CLOSE BUZZERS';
+  dom.openBuzzersBtn().classList.add('armed');
+}
+
+function disarmBuzzers() {
+  state.buzzerArmed = false;
+  dom.openBuzzersBtn().textContent = 'OPEN BUZZERS';
+  dom.openBuzzersBtn().classList.remove('armed');
+}
+
+/**
+ * Called when a team key is pressed (keys 1, 2, 3 → team indices 0, 1, 2).
+ * Records the timestamp. After the randomization window, resolves order.
+ */
+function handleBuzzIn(teamIdx) {
+  if (!state.buzzerArmed) return;
+  if (state.buzzedKeys.has(teamIdx)) return; // already buzzed this round
+
+  state.buzzedKeys.add(teamIdx);
+  const ts = performance.now();
+  state.buzzEvents.push({ teamIdx, timestamp: ts });
+
+  playBuzzIn();
+
+  if (state.buzzResolved) {
+    // Window already resolved — append this late buzz directly to the displayed order
+    state.displayedBuzzOrder.push(teamIdx);
+    renderBuzzOrder();
+  } else if (state.buzzEvents.length === 1) {
+    // First buzz: schedule resolution after the randomization window
+    setTimeout(() => resolveAndDisplayBuzzOrder(), state.settings.randomWindow);
+  }
+}
+
+/**
+ * Resolves which teams are "simultaneous" (within the window of the first buzz),
+ * picks a winner among them by weighted random, then builds the final order.
+ */
+function resolveAndDisplayBuzzOrder() {
+  if (state.buzzEvents.length === 0) return;
+
+  const events = [...state.buzzEvents];
+  const firstTs = events[0].timestamp;
+  const window = state.settings.randomWindow;
+
+  // Partition into simultaneous and late
+  const simultaneous = events.filter(e => e.timestamp - firstTs <= window);
+  const late = events.filter(e => e.timestamp - firstTs > window);
+
+  // Sort late by timestamp
+  late.sort((a, b) => a.timestamp - b.timestamp);
+
+  // Weighted random among simultaneous
+  const winner = weightedRandom(simultaneous);
+
+  // Remaining simultaneous (excluding winner), sorted by ts
+  const remainingSimul = simultaneous
+    .filter(e => e !== winner)
+    .sort((a, b) => a.timestamp - b.timestamp);
+
+  // Final order: winner → remainingSimul → late
+  const order = [winner, ...remainingSimul, ...late];
+  state.displayedBuzzOrder = order.map(e => e.teamIdx);
+  state.currentBuzzerPos = 0;
+  state.buzzResolved = true;
+  // Buzzer stays armed so late buzz-ins from remaining teams can still be recorded
+
+  // Display with delay
+  const delay = state.settings.displayDelay;
+  state.displayDelayTimer = setTimeout(() => {
+    renderBuzzOrder();
+  }, delay);
+}
+
+function weightedRandom(events) {
+  if (events.length === 1) return events[0];
+  const weights = events.map(e => state.settings.teamWeights[e.teamIdx] ?? 1.0);
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < events.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return events[i];
+  }
+  return events[events.length - 1];
+}
+
+function renderBuzzOrder() {
+  const list = dom.buzzOrderList();
+  list.innerHTML = '';
+
+  state.displayedBuzzOrder.forEach((teamIdx, pos) => {
+    const name = state.settings.teamNames[teamIdx];
+    const entry = document.createElement('div');
+    entry.className = 'buzz-entry' + (pos === state.currentBuzzerPos ? ' leader' : '');
+    entry.id = `buzz-entry-${pos}`;
+    entry.innerHTML = `
+      <span class="buzz-rank">${pos + 1}.</span>
+      <span class="buzz-team-name">${escHtml(name)}</span>
+      ${pos === state.currentBuzzerPos ? '<span class="buzz-badge">Buzzed In!</span>' : ''}
+    `;
+    list.appendChild(entry);
+
+    // Stagger visibility for dramatic effect
+    setTimeout(() => entry.classList.add('visible'), pos * 80);
+  });
+}
+
+// ── CORRECT / WRONG ────────────────────────────────────────
+function handleCorrect() {
+  if (!state.currentClue) return;
+
+  const activeTeam = state.displayedBuzzOrder[state.currentBuzzerPos];
+  if (activeTeam === undefined) {
+    // No one buzzed — just close
+    closeClueScreen(true);
+    return;
+  }
+
+  state.scores[activeTeam] += state.currentClue.clue.points;
+  closeClueScreen(true);
+}
+
+function handleWrong() {
+  if (!state.currentClue) return;
+
+  // Optionally deduct points
+  const activeTeam = state.displayedBuzzOrder[state.currentBuzzerPos];
+  if (activeTeam !== undefined) {
+    // No deduction by default — just advance
+    state.currentBuzzerPos++;
+  }
+
+  if (state.currentBuzzerPos >= state.displayedBuzzOrder.length) {
+    // No more teams — close clue
+    closeClueScreen(true);
+  } else {
+    // Show next team as leader
+    renderBuzzOrder();
+  }
+}
+
+// ── TIMER ──────────────────────────────────────────────────
+function startTimer() {
+  if (state.timerRunning) {
+    stopTimer();
+    dom.timerBtn().textContent = 'START TIMER';
+    dom.timerCount().textContent = state.settings.timerDuration + 's';
+    dom.timerCount().classList.remove('expired');
+    dom.timerBar().style.width = '100%';
+    dom.timerBar().classList.remove('low');
+    state.timerExpired = false;
+    return;
+  }
+
+  state.timerRunning = true;
+  state.timerStart = performance.now();
+  state.timerExpired = false;
+  dom.timerBtn().textContent = 'RESET TIMER';
+
+  const durationMs = state.settings.timerDuration * 1000;
+
+  state.timerInterval = setInterval(() => {
+    const elapsed = performance.now() - state.timerStart;
+    const remaining = Math.max(0, durationMs - elapsed);
+    const secs = Math.ceil(remaining / 1000);
+    const pct = (remaining / durationMs) * 100;
+
+    dom.timerCount().textContent = secs + 's';
+    dom.timerBar().style.width = pct + '%';
+
+    if (pct < 33) {
+      dom.timerBar().classList.add('low');
+    }
+
+    if (remaining <= 0) {
+      stopTimer();
+      state.timerExpired = true;
+      dom.timerCount().textContent = '0s';
+      dom.timerCount().classList.add('expired');
+      dom.timerBar().style.width = '0%';
+      dom.timerBtn().textContent = 'START TIMER';
+      playTimerExpired();
+    }
+  }, 50);
+}
+
+function stopTimer() {
+  if (state.timerInterval) {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+  }
+  state.timerRunning = false;
+}
+
+// ── SETTINGS ───────────────────────────────────────────────
+function openSettings() {
+  const inputs = getSettingsInputs();
+  const s = state.settings;
+
+  inputs.teamNames.forEach((el, i) => {
+    if (el) el.value = s.teamNames[i];
+  });
+
+  inputs.teamWeights.forEach((el, i) => {
+    if (el) {
+      el.value = s.teamWeights[i];
+      inputs.weightVals[i].textContent = s.teamWeights[i].toFixed(1);
+    }
+  });
+
+  if (inputs.randomWindow) {
+    inputs.randomWindow.value = s.randomWindow;
+    inputs.randomWindowVal.textContent = s.randomWindow + 'ms';
+  }
+  if (inputs.displayDelay) {
+    inputs.displayDelay.value = s.displayDelay;
+    inputs.displayDelayVal.textContent = s.displayDelay + 'ms';
+  }
+  if (inputs.timerDuration) {
+    inputs.timerDuration.value = s.timerDuration;
+    inputs.timerDurationVal.textContent = s.timerDuration + 's';
+  }
+
+  dom.modalOverlay().classList.remove('hidden');
+}
+
+function saveSettings() {
+  const inputs = getSettingsInputs();
+
+  inputs.teamNames.forEach((el, i) => {
+    if (el) state.settings.teamNames[i] = el.value.trim() || `Team ${i + 1}`;
+  });
+
+  inputs.teamWeights.forEach((el, i) => {
+    if (el) state.settings.teamWeights[i] = parseFloat(el.value);
+  });
+
+  if (inputs.randomWindow) state.settings.randomWindow = parseInt(inputs.randomWindow.value);
+  if (inputs.displayDelay) state.settings.displayDelay = parseInt(inputs.displayDelay.value);
+  if (inputs.timerDuration) {
+    state.settings.timerDuration = parseInt(inputs.timerDuration.value);
+    state.timerDuration = state.settings.timerDuration;
+  }
+
+  dom.modalOverlay().classList.add('hidden');
+  renderBoard();
+}
+
+function closeSettings() {
+  saveSettings();
+}
+
+function resetScores() {
+  state.scores = [0, 0, 0];
+  updateScoreboard();
+}
+
+// ── YAML FILE LOADING ──────────────────────────────────────
+function onFileSelected(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const parsed = parseYAML(ev.target.result);
+      if (!parsed || !parsed.categories) throw new Error('Invalid game file');
+      loadGameData(parsed);
+    } catch (err) {
+      alert('Failed to load game file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  // Reset file input so same file can be re-loaded
+  e.target.value = '';
+}
+
+// ── CONFIRMATION DIALOG ────────────────────────────────────
+let confirmCallback = null;
+
+function showConfirm(message, onYes) {
+  document.querySelector('#confirm-box p').textContent = message;
+  confirmCallback = onYes;
+  dom.confirmOverlay().classList.remove('hidden');
+}
+
+function hideConfirm() {
+  dom.confirmOverlay().classList.add('hidden');
+  confirmCallback = null;
+}
+
+// ── EVENT BINDING ──────────────────────────────────────────
+function bindEvents() {
+  // Settings gear
+  dom.settingsBtn().addEventListener('click', openSettings);
+  dom.closeSettingsBtn().addEventListener('click', closeSettings);
+
+  // Modal overlay click-outside to close
+  dom.modalOverlay().addEventListener('click', e => {
+    if (e.target === dom.modalOverlay()) closeSettings();
+  });
+
+  // File loading
+  dom.loadGameBtn().addEventListener('click', () => dom.fileInput().click());
+  dom.fileInput().addEventListener('change', onFileSelected);
+
+  // Reset scores
+  dom.resetScoresBtn().addEventListener('click', resetScores);
+
+  // Live settings sliders
+  const bindSlider = (inputId, valId, suffix, float = false) => {
+    const input = $(inputId);
+    const valEl = $(valId);
+    if (!input || !valEl) return;
+    input.addEventListener('input', () => {
+      const v = float ? parseFloat(input.value).toFixed(1) : parseInt(input.value);
+      valEl.textContent = v + suffix;
+    });
+  };
+
+  bindSlider('setting-weight-0', 'setting-weight-val-0', '', true);
+  bindSlider('setting-weight-1', 'setting-weight-val-1', '', true);
+  bindSlider('setting-weight-2', 'setting-weight-val-2', '', true);
+  bindSlider('setting-random-window', 'setting-random-window-val', 'ms');
+  bindSlider('setting-display-delay', 'setting-display-delay-val', 'ms');
+  bindSlider('setting-timer-duration', 'setting-timer-duration-val', 's');
+
+  // Clue screen
+  dom.openBuzzersBtn().addEventListener('click', toggleBuzzers);
+  dom.timerBtn().addEventListener('click', startTimer);
+  dom.correctBtn().addEventListener('click', handleCorrect);
+  dom.wrongBtn().addEventListener('click', handleWrong);
+  dom.returnBtn().addEventListener('click', () => {
+    showConfirm('Return to board without awarding points?', () => {
+      hideConfirm();
+      closeClueScreen(true);
+    });
+  });
+
+  // Show question button
+  dom.showQuestionBtn().addEventListener('click', () => {
+    if (!state.currentClue) return;
+    state.questionRevealed = !state.questionRevealed;
+    if (state.questionRevealed) {
+      dom.questionReveal().classList.add('visible');
+      dom.showQuestionBtn().textContent = 'Hide Answer';
+    } else {
+      dom.questionReveal().classList.remove('visible');
+      dom.showQuestionBtn().textContent = 'Show Answer';
+    }
+  });
+
+  // Confirm dialog
+  dom.confirmYes().addEventListener('click', () => {
+    if (confirmCallback) confirmCallback();
+  });
+  dom.confirmNo().addEventListener('click', hideConfirm);
+
+  // Keyboard
+  document.addEventListener('keydown', onKeyDown, true);
+}
+
+// ── KEYBOARD HANDLER ───────────────────────────────────────
+function onKeyDown(e) {
+  const clueOpen = !dom.clueScreen().classList.contains('hidden');
+
+  // Escape — close clue screen
+  if (e.key === 'Escape') {
+    if (!$('confirm-overlay').classList.contains('hidden')) {
+      hideConfirm();
+      e.preventDefault();
+      return;
+    }
+    if (!$('modal-overlay').classList.contains('hidden')) {
+      closeSettings();
+      e.preventDefault();
+      return;
+    }
+    if (clueOpen) {
+      showConfirm('Return to board without awarding points?', () => {
+        hideConfirm();
+        closeClueScreen(true);
+      });
+      e.preventDefault();
+      return;
+    }
+  }
+
+  // Buzz-in keys 1, 2, 3
+  if (clueOpen && (e.key === '1' || e.key === '2' || e.key === '3')) {
+    e.preventDefault(); // always prevent default for these keys when clue is open
+    if (e.repeat) return; // ignore key repeat events
+
+    if (!state.buzzerArmed) return; // don't act when not armed
+
+    const teamIdx = parseInt(e.key) - 1;
+    handleBuzzIn(teamIdx);
+    return;
+  }
+}
+
+// ── BOOTSTRAP ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', init);

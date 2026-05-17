@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quizardy!</title>
+  <link rel="stylesheet" href="game.css" />
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     BOARD SCREEN
+     ══════════════════════════════════════════════════════════ -->
+<div id="board-screen">
+
+  <!-- Title -->
+  <div id="game-title">Quizardy!</div>
+
+  <!-- Scoreboard -->
+  <div id="scoreboard-row">
+    <div id="scoreboard"><!-- Populated by JS --></div>
+    <button id="settings-btn" title="Settings">&#9881;</button>
+  </div>
+
+  <!-- Board grid -->
+  <div id="game-board">
+    <!-- Populated by JS -->
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     CLUE SCREEN (full-screen overlay)
+     ══════════════════════════════════════════════════════════ -->
+<div id="clue-screen" class="hidden">
+
+  <!-- Header: category + points + return -->
+  <div id="clue-header">
+    <div id="clue-category">Category</div>
+    <div id="clue-points-badge">100 pts</div>
+    <button id="return-btn" title="Return to board (Esc)">&#8592; BOARD</button>
+  </div>
+
+  <!-- Body: clue text + answer reveal -->
+  <div id="clue-body">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:0;width:100%">
+      <div id="clue-answer-text">Clue text here</div>
+      <button id="show-question-btn">Show Answer</button>
+      <div id="question-reveal"></div>
+    </div>
+  </div>
+
+  <!-- Footer: buzzer panel | timer + action buttons -->
+  <div id="clue-footer">
+
+    <!-- Buzzer panel (left column, both rows) -->
+    <div id="buzzer-panel">
+      <div id="buzzer-controls">
+        <button id="open-buzzers-btn">OPEN BUZZERS</button>
+        <span style="font-size:13px;color:rgba(255,255,255,0.5);font-family:monospace;">
+          Keys&nbsp;1&nbsp;/&nbsp;2&nbsp;/&nbsp;3
+        </span>
+      </div>
+      <div id="buzz-order-list"></div>
+    </div>
+
+    <!-- Timer panel (right top) -->
+    <div id="timer-panel">
+      <button id="timer-btn">START TIMER</button>
+      <div id="timer-display">
+        <div id="timer-count">15s</div>
+        <div id="timer-bar-track">
+          <div id="timer-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action buttons (right bottom) -->
+    <div id="action-buttons">
+      <button class="action-btn" id="correct-btn">&#10003; CORRECT</button>
+      <button class="action-btn" id="wrong-btn">&#10007; WRONG</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SETTINGS MODAL
+     ══════════════════════════════════════════════════════════ -->
+<div id="modal-overlay" class="hidden">
+  <div id="settings-modal">
+    <h2>&#9881; Settings</h2>
+
+    <!-- Team names -->
+    <div class="settings-section">
+      <h3>Team Names</h3>
+      <div class="settings-row">
+        <label>Team 1 (key 1)</label>
+        <input type="text" id="setting-team-name-0" placeholder="Team 1" />
+      </div>
+      <div class="settings-row">
+        <label>Team 2 (key 2)</label>
+        <input type="text" id="setting-team-name-1" placeholder="Team 2" />
+      </div>
+      <div class="settings-row">
+        <label>Team 3 (key 3)</label>
+        <input type="text" id="setting-team-name-2" placeholder="Team 3" />
+      </div>
+    </div>
+
+    <!-- Buzz weights -->
+    <div class="settings-section">
+      <h3>Buzz Weights <span style="font-weight:normal;font-size:12px;color:rgba(255,255,255,0.5)">(higher = more likely to win ties)</span></h3>
+      <div class="settings-row">
+        <label>Team 1</label>
+        <input type="range" id="setting-weight-0" min="0.5" max="2.0" step="0.1" value="1.0" />
+        <span class="range-val" id="setting-weight-val-0">1.0</span>
+      </div>
+      <div class="settings-row">
+        <label>Team 2</label>
+        <input type="range" id="setting-weight-1" min="0.5" max="2.0" step="0.1" value="1.0" />
+        <span class="range-val" id="setting-weight-val-1">1.0</span>
+      </div>
+      <div class="settings-row">
+        <label>Team 3</label>
+        <input type="range" id="setting-weight-2" min="0.5" max="2.0" step="0.1" value="1.0" />
+        <span class="range-val" id="setting-weight-val-2">1.0</span>
+      </div>
+    </div>
+
+    <!-- Buzzer timing -->
+    <div class="settings-section">
+      <h3>Buzzer Timing</h3>
+      <div class="settings-row">
+        <label>Randomization window</label>
+        <input type="range" id="setting-random-window" min="0" max="1000" step="25" value="300" />
+        <span class="range-val" id="setting-random-window-val">300ms</span>
+      </div>
+      <div class="settings-row">
+        <label>Display delay</label>
+        <input type="range" id="setting-display-delay" min="0" max="2000" step="50" value="500" />
+        <span class="range-val" id="setting-display-delay-val">500ms</span>
+      </div>
+    </div>
+
+    <!-- Timer -->
+    <div class="settings-section">
+      <h3>Timer</h3>
+      <div class="settings-row">
+        <label>Duration</label>
+        <input type="range" id="setting-timer-duration" min="5" max="60" step="1" value="15" />
+        <span class="range-val" id="setting-timer-duration-val">15s</span>
+      </div>
+    </div>
+
+    <!-- File & Reset -->
+    <div class="settings-section">
+      <h3>Game File</h3>
+      <div class="settings-btn-row">
+        <button class="settings-action-btn" id="load-game-btn">&#128193; Load YAML File</button>
+        <button class="settings-action-btn" id="reset-scores-btn">&#9851; Reset Scores</button>
+        <button class="settings-action-btn" id="close-settings-btn">&#10003; Done</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Hidden file input -->
+<input type="file" id="file-input" accept=".yaml,.yml" />
+
+<!-- ══════════════════════════════════════════════════════════
+     CONFIRMATION DIALOG
+     ══════════════════════════════════════════════════════════ -->
+<div id="confirm-overlay" class="hidden">
+  <div id="confirm-box">
+    <p>Are you sure?</p>
+    <div class="confirm-btns">
+      <button id="confirm-yes">Yes, leave</button>
+      <button id="confirm-no">Stay</button>
+    </div>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>

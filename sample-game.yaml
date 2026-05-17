@@ -1,0 +1,108 @@
+title: "Classic Jeopardy"
+teams:
+  - "Team 1"
+  - "Team 2"
+  - "Team 3"
+categories:
+  - name: "Moses"
+    clues:
+      - points: 100
+        answer: "The name of Moses' sister."
+        question: "Who is Miriam?"
+      - points: 200
+        answer: "The mountain Moses ascended to receive the Ten Commandments."
+        question: "What is Mount Sinai?"
+      - points: 300
+        answer: "This scientist published the theory of general relativity in 1915"
+        question: "Who is Albert Einstein?"
+      - points: 400
+        answer: "The speed of light in a vacuum, approximately 300,000 kilometers per second"
+        question: "What is the speed of light?"
+      - points: 500
+        answer: "This element has the highest electronegativity on the periodic table"
+        question: "What is fluorine?"
+  - name: "History"
+    clues:
+      - points: 100
+        answer: "This ancient wonder was located in Alexandria, Egypt"
+        question: "What is the Lighthouse of Alexandria?"
+      - points: 200
+        answer: "The year the Berlin Wall fell"
+        question: "What is 1989?"
+      - points: 300
+        answer: "This empire was ruled by Genghis Khan in the 13th century"
+        question: "What is the Mongol Empire?"
+      - points: 400
+        answer: "She was the last active ruler of the Ptolemaic Kingdom of Egypt"
+        question: "Who is Cleopatra?"
+      - points: 500
+        answer: "This 1215 document limited the power of the English king and is considered a cornerstone of democracy"
+        question: "What is the Magna Carta?"
+  - name: "Geography"
+    clues:
+      - points: 100
+        answer: "The largest ocean on Earth"
+        question: "What is the Pacific Ocean?"
+      - points: 200
+        answer: "This country has the most natural lakes in the world"
+        question: "What is Canada?"
+      - points: 300
+        answer: "The world's longest river by length"
+        question: "What is the Nile?"
+      - points: 400
+        answer: "This tiny European principality is the world's second smallest country by area"
+        question: "What is Monaco?"
+      - points: 500
+        answer: "The only country that borders both the Atlantic and Indian Oceans"
+        question: "What is South Africa?"
+  - name: "Pop Culture"
+    clues:
+      - points: 100
+        answer: "This fictional wizard school is attended by Harry Potter"
+        question: "What is Hogwarts?"
+      - points: 200
+        answer: "She played Black Widow in the Marvel Cinematic Universe"
+        question: "Who is Scarlett Johansson?"
+      - points: 300
+        answer: "This streaming platform released 'Stranger Things'"
+        question: "What is Netflix?"
+      - points: 400
+        answer: "Released in 1977, this film franchise features a Galactic Empire and a Rebel Alliance"
+        question: "What is Star Wars?"
+      - points: 500
+        answer: "This Beyoncé album from 2016 featured the hit single 'Formation'"
+        question: "What is Lemonade?"
+  - name: "Sports"
+    clues:
+      - points: 100
+        answer: "The number of players on a standard soccer team on the field"
+        question: "What is eleven?"
+      - points: 200
+        answer: "This country has won the most FIFA World Cup titles with five championships"
+        question: "What is Brazil?"
+      - points: 300
+        answer: "This NBA player is known as 'The King' and won championships with three different teams"
+        question: "Who is LeBron James?"
+      - points: 400
+        answer: "The Grand Slam tennis tournament played on clay in Paris"
+        question: "What is the French Open (Roland Garros)?"
+      - points: 500
+        answer: "This swimmer holds the record for most Olympic gold medals of any athlete in history"
+        question: "Who is Michael Phelps?"
+  - name: "Food & Drink"
+    clues:
+      - points: 100
+        answer: "The main ingredient in guacamole"
+        question: "What is avocado?"
+      - points: 200
+        answer: "This Italian cheese is traditionally used on a Margherita pizza"
+        question: "What is mozzarella?"
+      - points: 300
+        answer: "This Japanese rice wine is often served warm"
+        question: "What is sake?"
+      - points: 400
+        answer: "The country of origin for Worcestershire sauce"
+        question: "What is England?"
+      - points: 500
+        answer: "This French term describes the method of cooking food slowly in vacuum-sealed bags in a water bath"
+        question: "What is sous vide?"
