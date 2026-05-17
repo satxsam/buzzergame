@@ -470,9 +470,9 @@ function renderBoard() {
   board.innerHTML = '';
 
   // Category headers
-  game.categories.forEach(cat => {
+  game.categories.forEach((cat, catIdx) => {
     const header = document.createElement('div');
-    header.className = 'category-header';
+    header.className = `category-header cat-${catIdx}`;
     header.textContent = cat.name;
     board.appendChild(header);
   });
@@ -486,10 +486,13 @@ function renderBoard() {
         return;
       }
       const cell = document.createElement('div');
-      cell.className = 'clue-cell' + (state.usedCells[catIdx][row] ? ' used' : '');
+      const usedClass = state.usedCells[catIdx][row] ? ' used' : '';
+      cell.className = `clue-cell cat-${catIdx}${usedClass}`;
       cell.dataset.cat = catIdx;
       cell.dataset.clue = row;
       cell.innerHTML = `<span>${clue.points}</span>`;
+      // Stagger entrance animation
+      cell.style.animationDelay = `${(catIdx * 5 + row) * 35}ms`;
       cell.addEventListener('click', () => onClueClick(catIdx, row));
       board.appendChild(cell);
     });
@@ -503,6 +506,35 @@ function updateScoreboard() {
     if (nameEl) nameEl.textContent = name;
     if (pointsEl) pointsEl.textContent = formatScore(state.scores[i]);
   });
+}
+
+function popScore(teamIdx) {
+  const el = document.getElementById(`team-points-${teamIdx}`);
+  if (!el) return;
+  el.classList.remove('pop');
+  void el.offsetWidth; // force reflow to restart animation
+  el.classList.add('pop');
+  el.addEventListener('animationend', () => el.classList.remove('pop'), { once: true });
+}
+
+function launchConfetti() {
+  const colors = ['#f0c040','#e74c3c','#2ecc71','#9b59b6','#1abc9c','#e91e8c','#ffffff','#e67e22'];
+  for (let i = 0; i < 80; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const size = 7 + Math.random() * 9;
+    el.style.cssText = [
+      `left:${Math.random() * 100}vw`,
+      `width:${size}px`,
+      `height:${size * (0.4 + Math.random() * 0.8)}px`,
+      `background:${colors[Math.floor(Math.random() * colors.length)]}`,
+      `animation-delay:${Math.random() * 0.4}s`,
+      `animation-duration:${0.9 + Math.random() * 0.8}s`,
+      `border-radius:${Math.random() > 0.5 ? '50%' : '2px'}`,
+    ].join(';');
+    document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
 }
 
 function formatScore(n) {
@@ -727,6 +759,8 @@ function handleCorrect() {
 
   state.scores[activeTeam] += state.currentClue.clue.points;
   playCorrect();
+  launchConfetti();
+  popScore(activeTeam);
   closeClueScreen(true);
 }
 
