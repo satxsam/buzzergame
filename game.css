@@ -277,6 +277,23 @@ html, body {
   align-items: center;
   justify-content: center;
   padding: 30px 60px;
+  position: relative;
+}
+
+#verse-icon {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  font-size: clamp(48px, 7vw, 96px);
+  line-height: 1;
+  animation: verse-pulse 1.8s ease-in-out infinite;
+  cursor: default;
+  user-select: none;
+}
+
+@keyframes verse-pulse {
+  0%, 100% { transform: scale(1);    filter: drop-shadow(0 0 8px rgba(240,192,64,0.4)); }
+  50%       { transform: scale(1.12); filter: drop-shadow(0 0 20px rgba(240,192,64,0.9)); }
 }
 
 #clue-answer-text {

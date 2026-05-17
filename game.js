@@ -395,6 +395,7 @@ const dom = {
   finalChallengeBtn: () => $('final-challenge-btn'),
   versePanel:        () => $('verse-panel'),
   verseTeamBtns:     () => $('verse-team-btns'),
+  verseIcon:         () => $('verse-icon'),
   confirmOverlay:    () => $('confirm-overlay'),
   confirmYes:        () => $('confirm-yes'),
   confirmNo:         () => $('confirm-no'),
@@ -605,7 +606,13 @@ function openClueScreen() {
 
 function setupVersePanel(hasVerse) {
   const panel = dom.versePanel();
-  if (!hasVerse) { panel.classList.add('hidden'); return; }
+  const icon  = dom.verseIcon();
+  if (!hasVerse) {
+    panel.classList.add('hidden');
+    icon.classList.add('hidden');
+    return;
+  }
+  icon.classList.remove('hidden');
   panel.classList.remove('hidden');
   const btns = dom.verseTeamBtns();
   btns.innerHTML = '';
@@ -653,6 +660,7 @@ function closeClueScreen(markUsed = true) {
   state.isFinalChallenge = false;
   state.verseAwardedTeams = new Set();
   dom.versePanel().classList.add('hidden');
+  dom.verseIcon().classList.add('hidden');
   dom.clueScreen().classList.remove('final-challenge');
   dom.clueScreen().classList.add('hidden');
   updateScoreboard();
