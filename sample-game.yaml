@@ -1,113 +1,131 @@
-title: "Classic Jeopardy"
+title: "Sunday School Quizardy!"
 teams:
   - "Team 1"
   - "Team 2"
   - "Team 3"
 categories:
-  - name: "Moses"
+  - name: "Old Testament"
     clues:
       - points: 100
-        answer: "The name of Moses' sister."
-        question: "Who is Miriam?"
+        answer: "God created the world in this many days before resting on the seventh"
+        question: "What is six?"
+        verse_lookup: true
       - points: 200
-        answer: "The mountain Moses ascended to receive the Ten Commandments."
-        question: "What is Mount Sinai?"
+        answer: "He was swallowed by a great fish after refusing to go to Nineveh"
+        question: "Who is Jonah?"
+        verse_lookup: true
       - points: 300
-        answer: "This scientist published the theory of general relativity in 1915"
-        question: "Who is Albert Einstein?"
+        answer: "God tested this man's faith by asking him to sacrifice his son Isaac"
+        question: "Who is Abraham?"
       - points: 400
-        answer: "The speed of light in a vacuum, approximately 300,000 kilometers per second"
-        question: "What is the speed of light?"
+        answer: "She hid two Israelite spies under stalks of flax on her rooftop in Jericho"
+        question: "Who is Rahab?"
+        verse_lookup: true
       - points: 500
-        answer: "This element has the highest electronegativity on the periodic table"
-        question: "What is fluorine?"
-  - name: "History"
+        answer: "This prophet did not die but was taken to heaven in a whirlwind with a chariot of fire"
+        question: "Who is Elijah?"
+
+  - name: "New Testament"
     clues:
       - points: 100
-        answer: "This ancient wonder was located in Alexandria, Egypt"
-        question: "What is the Lighthouse of Alexandria?"
+        answer: "Jesus performed his first miracle by turning water into this at a wedding"
+        question: "What is wine?"
+        verse_lookup: true
       - points: 200
-        answer: "The year the Berlin Wall fell"
-        question: "What is 1989?"
+        answer: "This disciple denied knowing Jesus three times before the rooster crowed"
+        question: "Who is Peter?"
       - points: 300
-        answer: "This empire was ruled by Genghis Khan in the 13th century"
-        question: "What is the Mongol Empire?"
+        answer: "Jesus fed a crowd of 5,000 people using this many loaves of bread and fish"
+        question: "What is five loaves and two fish?"
+        verse_lookup: true
       - points: 400
-        answer: "She was the last active ruler of the Ptolemaic Kingdom of Egypt"
-        question: "Who is Cleopatra?"
+        answer: "Paul wrote that love is patient, love is kind in this book of the Bible"
+        question: "What is 1 Corinthians?"
       - points: 500
-        answer: "This 1215 document limited the power of the English king and is considered a cornerstone of democracy"
-        question: "What is the Magna Carta?"
-  - name: "Geography"
+        answer: "This man helped Jesus carry his cross on the way to Golgotha"
+        question: "Who is Simon of Cyrene?"
+
+  - name: "Bible Heroes"
     clues:
       - points: 100
-        answer: "The largest ocean on Earth"
-        question: "What is the Pacific Ocean?"
+        answer: "He built a huge boat to save his family and the animals from a great flood"
+        question: "Who is Noah?"
       - points: 200
-        answer: "This country has the most natural lakes in the world"
-        question: "What is Canada?"
+        answer: "She chose to stay with her mother-in-law Naomi, saying 'Where you go, I will go'"
+        question: "Who is Ruth?"
+        verse_lookup: true
       - points: 300
-        answer: "The world's longest river by length"
-        question: "What is the Nile?"
+        answer: "He defeated the giant Goliath with a sling and a single stone"
+        question: "Who is David?"
       - points: 400
-        answer: "This tiny European principality is the world's second smallest country by area"
-        question: "What is Monaco?"
+        answer: "She became Queen of Persia and bravely saved the Jewish people from destruction"
+        question: "Who is Esther?"
+        verse_lookup: true
       - points: 500
-        answer: "The only country that borders both the Atlantic and Indian Oceans"
-        question: "What is South Africa?"
-  - name: "Pop Culture"
+        answer: "Sold into slavery by his brothers, he later became second in command of all Egypt"
+        question: "Who is Joseph?"
+
+  - name: "Parables"
     clues:
       - points: 100
-        answer: "This fictional wizard school is attended by Harry Potter"
-        question: "What is Hogwarts?"
+        answer: "In this parable, a shepherd leaves his flock to search for this many missing sheep"
+        question: "What is one?"
+        verse_lookup: true
       - points: 200
-        answer: "She played Black Widow in the Marvel Cinematic Universe"
-        question: "Who is Scarlett Johansson?"
+        answer: "The father in the Parable of the Prodigal Son ran to meet this person"
+        question: "Who is his returning son?"
       - points: 300
-        answer: "This streaming platform released 'Stranger Things'"
-        question: "What is Netflix?"
+        answer: "The parable of the Good Samaritan was told to answer the question 'Who is my...'"
+        question: "What is neighbor?"
+        verse_lookup: true
       - points: 400
-        answer: "Released in 1977, this film franchise features a Galactic Empire and a Rebel Alliance"
-        question: "What is Star Wars?"
+        answer: "In the Parable of the Sower, seed that fell on good soil produced a crop of this amount"
+        question: "What is thirty, sixty, or a hundred times what was sown?"
       - points: 500
-        answer: "This Beyoncé album from 2016 featured the hit single 'Formation'"
-        question: "What is Lemonade?"
-  - name: "Sports"
+        answer: "In the Parable of the Ten Virgins, this many had enough oil for their lamps when the bridegroom arrived"
+        question: "What is five?"
+
+  - name: "Books of the Bible"
     clues:
       - points: 100
-        answer: "The number of players on a standard soccer team on the field"
-        question: "What is eleven?"
+        answer: "The very first book of the Bible"
+        question: "What is Genesis?"
       - points: 200
-        answer: "This country has won the most FIFA World Cup titles with five championships"
-        question: "What is Brazil?"
+        answer: "The longest book in the Bible, containing 150 chapters of songs and prayers"
+        question: "What is Psalms?"
       - points: 300
-        answer: "This NBA player is known as 'The King' and won championships with three different teams"
-        question: "Who is LeBron James?"
+        answer: "The last book of the Bible, also called the Apocalypse"
+        question: "What is Revelation?"
+        verse_lookup: true
       - points: 400
-        answer: "The Grand Slam tennis tournament played on clay in Paris"
-        question: "What is the French Open (Roland Garros)?"
+        answer: "This book of the New Testament records the missionary journeys of Paul and the early church"
+        question: "What is Acts?"
       - points: 500
-        answer: "This swimmer holds the record for most Olympic gold medals of any athlete in history"
-        question: "Who is Michael Phelps?"
-  - name: "Food & Drink"
+        answer: "Jesus is described as 'the Word' who 'was with God and was God' in the opening of this Gospel"
+        question: "What is John?"
+        verse_lookup: true
+
+  - name: "Life of Jesus"
     clues:
       - points: 100
-        answer: "The main ingredient in guacamole"
-        question: "What is avocado?"
+        answer: "The town where Jesus was born"
+        question: "What is Bethlehem?"
       - points: 200
-        answer: "This Italian cheese is traditionally used on a Margherita pizza"
-        question: "What is mozzarella?"
+        answer: "Jesus walked on the surface of this body of water"
+        question: "What is the Sea of Galilee?"
+        verse_lookup: true
       - points: 300
-        answer: "This Japanese rice wine is often served warm"
-        question: "What is sake?"
+        answer: "Jesus raised this man from the dead after he had been in the tomb for four days"
+        question: "Who is Lazarus?"
+        verse_lookup: true
       - points: 400
-        answer: "The country of origin for Worcestershire sauce"
-        question: "What is England?"
+        answer: "The number of days Jesus fasted in the wilderness before being tempted by the devil"
+        question: "What is forty?"
       - points: 500
-        answer: "This French term describes the method of cooking food slowly in vacuum-sealed bags in a water bath"
-        question: "What is sous vide?"
+        answer: "Jesus appeared and spoke to his disciples for this many days after his resurrection before ascending to heaven"
+        question: "What is forty?"
 
 final_challenge:
-  category: "The Ultimate Challenge"
-  answer: "He spent three days and three nights in the belly of a great fish before being sent to preach to Nineveh"
-  question: "Who is Jonah?"
+  category: "Final Challenge"
+  answer: "Jesus named these two commandments as the greatest: love God with all your heart, and love your..."
+  question: "What is neighbor?"

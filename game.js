@@ -6,74 +6,74 @@
 
 // ── DEFAULT GAME DATA ──────────────────────────────────────
 const DEFAULT_GAME = {
-  title: "Quizardy!",
+  title: "Sunday School Quizardy!",
   teams: ["Team 1", "Team 2", "Team 3"],
   categories: [
     {
-      name: "Science",
+      name: "Old Testament",
       clues: [
-        { points: 100, answer: "This gas makes up about 78% of Earth's atmosphere", question: "What is nitrogen?" },
-        { points: 200, answer: "The powerhouse of the cell", question: "What is the mitochondria?" },
-        { points: 300, answer: "This scientist published the theory of general relativity in 1915", question: "Who is Albert Einstein?" },
-        { points: 400, answer: "The speed of light in a vacuum, approximately 300,000 kilometers per second", question: "What is the speed of light?" },
-        { points: 500, answer: "This element has the highest electronegativity on the periodic table", question: "What is fluorine?" }
+        { points: 100, answer: "God created the world in this many days before resting on the seventh", question: "What is six?", verse_lookup: true },
+        { points: 200, answer: "He was swallowed by a great fish after refusing to go to Nineveh", question: "Who is Jonah?", verse_lookup: true },
+        { points: 300, answer: "God tested this man's faith by asking him to sacrifice his son Isaac", question: "Who is Abraham?" },
+        { points: 400, answer: "She hid two Israelite spies under stalks of flax on her rooftop in Jericho", question: "Who is Rahab?", verse_lookup: true },
+        { points: 500, answer: "This prophet did not die but was taken to heaven in a whirlwind with a chariot of fire", question: "Who is Elijah?" }
       ]
     },
     {
-      name: "History",
+      name: "New Testament",
       clues: [
-        { points: 100, answer: "This ancient wonder was located in Alexandria, Egypt", question: "What is the Lighthouse of Alexandria?" },
-        { points: 200, answer: "The year the Berlin Wall fell", question: "What is 1989?" },
-        { points: 300, answer: "This empire was ruled by Genghis Khan in the 13th century", question: "What is the Mongol Empire?" },
-        { points: 400, answer: "She was the last active ruler of the Ptolemaic Kingdom of Egypt", question: "Who is Cleopatra?" },
-        { points: 500, answer: "This 1215 document limited the power of the English king and is considered a cornerstone of democracy", question: "What is the Magna Carta?" }
+        { points: 100, answer: "Jesus performed his first miracle by turning water into this at a wedding", question: "What is wine?", verse_lookup: true },
+        { points: 200, answer: "This disciple denied knowing Jesus three times before the rooster crowed", question: "Who is Peter?" },
+        { points: 300, answer: "Jesus fed a crowd of 5,000 people using this many loaves of bread and fish", question: "What is five loaves and two fish?", verse_lookup: true },
+        { points: 400, answer: "Paul wrote that love is patient, love is kind in this book of the Bible", question: "What is 1 Corinthians?" },
+        { points: 500, answer: "This man helped Jesus carry his cross on the way to Golgotha", question: "Who is Simon of Cyrene?" }
       ]
     },
     {
-      name: "Geography",
+      name: "Bible Heroes",
       clues: [
-        { points: 100, answer: "The largest ocean on Earth", question: "What is the Pacific Ocean?" },
-        { points: 200, answer: "This country has the most natural lakes in the world", question: "What is Canada?" },
-        { points: 300, answer: "The world's longest river by length", question: "What is the Nile?" },
-        { points: 400, answer: "This tiny European principality is the world's second smallest country by area", question: "What is Monaco?" },
-        { points: 500, answer: "The only country that borders both the Atlantic and Indian Oceans", question: "What is South Africa?" }
+        { points: 100, answer: "He built a huge boat to save his family and the animals from a great flood", question: "Who is Noah?" },
+        { points: 200, answer: "She chose to stay with her mother-in-law Naomi, saying 'Where you go, I will go'", question: "Who is Ruth?", verse_lookup: true },
+        { points: 300, answer: "He defeated the giant Goliath with a sling and a single stone", question: "Who is David?" },
+        { points: 400, answer: "She became Queen of Persia and bravely saved the Jewish people from destruction", question: "Who is Esther?", verse_lookup: true },
+        { points: 500, answer: "Sold into slavery by his brothers, he later became second in command of all Egypt", question: "Who is Joseph?" }
       ]
     },
     {
-      name: "Pop Culture",
+      name: "Parables",
       clues: [
-        { points: 100, answer: "This fictional wizard school is attended by Harry Potter", question: "What is Hogwarts?" },
-        { points: 200, answer: "She played Black Widow in the Marvel Cinematic Universe", question: "Who is Scarlett Johansson?" },
-        { points: 300, answer: "This streaming platform released 'Stranger Things'", question: "What is Netflix?" },
-        { points: 400, answer: "Released in 1977, this film franchise features a Galactic Empire and a Rebel Alliance", question: "What is Star Wars?" },
-        { points: 500, answer: "This Beyoncé album from 2016 featured the hit single 'Formation'", question: "What is Lemonade?" }
+        { points: 100, answer: "In this parable, a shepherd leaves his flock to search for this many missing sheep", question: "What is one?", verse_lookup: true },
+        { points: 200, answer: "The father in the Parable of the Prodigal Son ran to meet this person", question: "Who is his returning son?" },
+        { points: 300, answer: "The parable of the Good Samaritan was told to answer the question 'Who is my...'", question: "What is neighbor?", verse_lookup: true },
+        { points: 400, answer: "In the Parable of the Sower, seed that fell on good soil produced a crop of this amount", question: "What is thirty, sixty, or a hundred times what was sown?" },
+        { points: 500, answer: "In the Parable of the Ten Virgins, this many had enough oil for their lamps when the bridegroom arrived", question: "What is five?" }
       ]
     },
     {
-      name: "Sports",
+      name: "Books of the Bible",
       clues: [
-        { points: 100, answer: "The number of players on a standard soccer team on the field", question: "What is eleven?" },
-        { points: 200, answer: "This country has won the most FIFA World Cup titles with five championships", question: "What is Brazil?" },
-        { points: 300, answer: "This NBA player is known as 'The King' and won championships with three different teams", question: "Who is LeBron James?" },
-        { points: 400, answer: "The Grand Slam tennis tournament played on clay in Paris", question: "What is the French Open (Roland Garros)?" },
-        { points: 500, answer: "This swimmer holds the record for most Olympic gold medals of any athlete in history", question: "Who is Michael Phelps?" }
+        { points: 100, answer: "The very first book of the Bible", question: "What is Genesis?" },
+        { points: 200, answer: "The longest book in the Bible, containing 150 chapters of songs and prayers", question: "What is Psalms?" },
+        { points: 300, answer: "The last book of the Bible, also called the Apocalypse", question: "What is Revelation?", verse_lookup: true },
+        { points: 400, answer: "This book of the New Testament records the missionary journeys of Paul and the early church", question: "What is Acts?" },
+        { points: 500, answer: "Jesus is described as 'the Word' who 'was with God and was God' in the opening of this Gospel", question: "What is John?", verse_lookup: true }
       ]
     },
     {
-      name: "Food & Drink",
+      name: "Life of Jesus",
       clues: [
-        { points: 100, answer: "The main ingredient in guacamole", question: "What is avocado?" },
-        { points: 200, answer: "This Italian cheese is traditionally used on a Margherita pizza", question: "What is mozzarella?" },
-        { points: 300, answer: "This Japanese rice wine is often served warm", question: "What is sake?" },
-        { points: 400, answer: "The country of origin for Worcestershire sauce", question: "What is England?" },
-        { points: 500, answer: "This French term describes the method of cooking food slowly in vacuum-sealed bags in a water bath", question: "What is sous vide?" }
+        { points: 100, answer: "The town where Jesus was born", question: "What is Bethlehem?" },
+        { points: 200, answer: "Jesus walked on the surface of this body of water", question: "What is the Sea of Galilee?", verse_lookup: true },
+        { points: 300, answer: "Jesus raised this man from the dead after he had been in the tomb for four days", question: "Who is Lazarus?", verse_lookup: true },
+        { points: 400, answer: "The number of days Jesus fasted in the wilderness before being tempted by the devil", question: "What is forty?" },
+        { points: 500, answer: "Jesus appeared and spoke to his disciples for this many days after his resurrection before ascending to heaven", question: "What is forty?" }
       ]
     }
   ],
   final_challenge: {
     category: "Final Challenge",
-    answer: "He built an ark and saved his family and the animals from a great flood",
-    question: "Who is Noah?"
+    answer: "Jesus named these two commandments as the greatest: love God with all your heart, and love your...",
+    question: "What is neighbor?"
   }
 };
 
@@ -89,6 +89,9 @@ const state = {
 
   // Current clue info
   currentClue: null,         // { catIdx, clueIdx, category, clue }
+
+  // Verse lookup
+  verseAwardedTeams: new Set(),
 
   // Buzzer state
   buzzerArmed: false,
@@ -114,7 +117,8 @@ const state = {
     randomWindow: 300,       // ms
     displayDelay: 500,       // ms
     timerDuration: 15,       // seconds
-    finalChallengePoints: 5000
+    finalChallengePoints: 5000,
+    versePoints: 1000
   }
 };
 
@@ -389,6 +393,8 @@ const dom = {
   wrongBtn:          () => $('wrong-btn'),
   returnBtn:         () => $('return-btn'),
   finalChallengeBtn: () => $('final-challenge-btn'),
+  versePanel:        () => $('verse-panel'),
+  verseTeamBtns:     () => $('verse-team-btns'),
   confirmOverlay:    () => $('confirm-overlay'),
   confirmYes:        () => $('confirm-yes'),
   confirmNo:         () => $('confirm-no'),
@@ -590,7 +596,42 @@ function openClueScreen() {
 
   dom.buzzOrderList().innerHTML = '';
 
+  // Verse lookup panel
+  state.verseAwardedTeams = new Set();
+  setupVersePanel(currentClue.clue.verse_lookup);
+
   dom.clueScreen().classList.remove('hidden');
+}
+
+function setupVersePanel(hasVerse) {
+  const panel = dom.versePanel();
+  if (!hasVerse) { panel.classList.add('hidden'); return; }
+  panel.classList.remove('hidden');
+  const btns = dom.verseTeamBtns();
+  btns.innerHTML = '';
+  state.settings.teamNames.forEach((name, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'verse-team-btn';
+    btn.textContent = name;
+    btn.addEventListener('click', () => toggleVerseAward(i, btn));
+    btns.appendChild(btn);
+  });
+}
+
+function toggleVerseAward(teamIdx, btn) {
+  if (state.verseAwardedTeams.has(teamIdx)) {
+    // Un-award
+    state.verseAwardedTeams.delete(teamIdx);
+    state.scores[teamIdx] -= state.settings.versePoints;
+    btn.classList.remove('awarded');
+  } else {
+    // Award
+    state.verseAwardedTeams.add(teamIdx);
+    state.scores[teamIdx] += state.settings.versePoints;
+    btn.classList.add('awarded');
+    popScore(teamIdx);
+  }
+  updateScoreboard();
 }
 
 function closeClueScreen(markUsed = true) {
@@ -610,6 +651,8 @@ function closeClueScreen(markUsed = true) {
   resetBuzzerState();
   state.currentClue = null;
   state.isFinalChallenge = false;
+  state.verseAwardedTeams = new Set();
+  dom.versePanel().classList.add('hidden');
   dom.clueScreen().classList.remove('final-challenge');
   dom.clueScreen().classList.add('hidden');
   updateScoreboard();
@@ -908,6 +951,8 @@ function openSettings() {
     inputs.timerDuration.value = s.timerDuration;
     inputs.timerDurationVal.textContent = s.timerDuration + 's';
   }
+  const vpEl = $('setting-verse-points');
+  if (vpEl) vpEl.value = s.versePoints;
   const fcEl = $('setting-final-points');
   if (fcEl) fcEl.value = s.finalChallengePoints;
 
@@ -931,6 +976,8 @@ function saveSettings() {
     state.settings.timerDuration = parseInt(inputs.timerDuration.value);
     state.timerDuration = state.settings.timerDuration;
   }
+  const vpEl = $('setting-verse-points');
+  if (vpEl) state.settings.versePoints = parseInt(vpEl.value) || 1000;
   const fcEl = $('setting-final-points');
   if (fcEl) state.settings.finalChallengePoints = parseInt(fcEl.value) || 5000;
 

@@ -70,6 +70,12 @@
         </span>
       </div>
       <div id="buzz-order-list"></div>
+
+      <!-- Verse lookup panel — shown only when clue has verse_lookup -->
+      <div id="verse-panel" class="hidden">
+        <div id="verse-label">&#128214; Verse Found:</div>
+        <div id="verse-team-btns"></div>
+      </div>
     </div>
 
     <!-- Timer panel (right top) -->
@@ -158,6 +164,14 @@
         <label>Duration</label>
         <input type="range" id="setting-timer-duration" min="5" max="60" step="1" value="15" />
         <span class="range-val" id="setting-timer-duration-val">15s</span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Verse Lookup</h3>
+      <div class="settings-row">
+        <label>Points per find</label>
+        <input type="number" id="setting-verse-points" min="100" max="10000" step="100" value="1000" style="width:90px;padding:6px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:var(--white);font-size:16px;text-align:center;" />
       </div>
     </div>
 
