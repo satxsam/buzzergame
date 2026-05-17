@@ -292,12 +292,14 @@ html, body {
 
 #clue-footer {
   border-top: 3px solid var(--gold);
-  padding: 14px 20px;
+  padding: 10px 20px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
-  gap: 10px;
-  flex-shrink: 0;
+  gap: 8px;
+  flex-shrink: 1;
+  min-height: 0;
+  overflow: hidden;
   background: rgba(6,12,233,0.15);
 }
 
@@ -345,15 +347,16 @@ html, body {
 #buzz-order-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-height: 60px;
+  gap: 4px;
+  overflow-y: auto;
+  max-height: min(160px, 22vh);
 }
 
 .buzz-entry {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
+  padding: 7px 14px;
   border-radius: 6px;
   background: rgba(255,255,255,0.08);
   border: 2px solid transparent;
