@@ -106,3 +106,8 @@ categories:
       - points: 500
         answer: "This French term describes the method of cooking food slowly in vacuum-sealed bags in a water bath"
         question: "What is sous vide?"
+
+final_challenge:
+  category: "The Ultimate Challenge"
+  answer: "He spent three days and three nights in the belly of a great fish before being sent to preach to Nineveh"
+  question: "Who is Jonah?"

@@ -30,6 +30,11 @@
     <!-- Populated by JS -->
   </div>
 
+  <!-- Final Challenge button -->
+  <div id="final-challenge-row">
+    <button id="final-challenge-btn">&#9733; FINAL CHALLENGE &#9733;</button>
+  </div>
+
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
@@ -153,6 +158,14 @@
         <label>Duration</label>
         <input type="range" id="setting-timer-duration" min="5" max="60" step="1" value="15" />
         <span class="range-val" id="setting-timer-duration-val">15s</span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Final Challenge</h3>
+      <div class="settings-row">
+        <label>Points</label>
+        <input type="number" id="setting-final-points" min="100" max="100000" step="100" value="5000" style="width:90px;padding:6px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:var(--white);font-size:16px;text-align:center;" />
       </div>
     </div>
 

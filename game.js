@@ -69,7 +69,12 @@ const DEFAULT_GAME = {
         { points: 500, answer: "This French term describes the method of cooking food slowly in vacuum-sealed bags in a water bath", question: "What is sous vide?" }
       ]
     }
-  ]
+  ],
+  final_challenge: {
+    category: "Final Challenge",
+    answer: "He built an ark and saved his family and the animals from a great flood",
+    question: "Who is Noah?"
+  }
 };
 
 // ── STATE ──────────────────────────────────────────────────
@@ -108,7 +113,8 @@ const state = {
     teamWeights: [1.0, 1.0, 1.0],
     randomWindow: 300,       // ms
     displayDelay: 500,       // ms
-    timerDuration: 15        // seconds
+    timerDuration: 15,       // seconds
+    finalChallengePoints: 5000
   }
 };
 
@@ -382,6 +388,7 @@ const dom = {
   correctBtn:        () => $('correct-btn'),
   wrongBtn:          () => $('wrong-btn'),
   returnBtn:         () => $('return-btn'),
+  finalChallengeBtn: () => $('final-challenge-btn'),
   confirmOverlay:    () => $('confirm-overlay'),
   confirmYes:        () => $('confirm-yes'),
   confirmNo:         () => $('confirm-no'),
@@ -602,8 +609,45 @@ function closeClueScreen(markUsed = true) {
   stopTimer();
   resetBuzzerState();
   state.currentClue = null;
+  state.isFinalChallenge = false;
+  dom.clueScreen().classList.remove('final-challenge');
   dom.clueScreen().classList.add('hidden');
   updateScoreboard();
+}
+
+function openFinalChallenge() {
+  const fc = state.game?.final_challenge;
+  if (!fc) { alert('No Final Challenge defined in this game file.'); return; }
+
+  const points = state.settings.finalChallengePoints;
+  state.currentClue = {
+    catIdx: -1, clueIdx: -1,
+    category: { name: fc.category },
+    clue: { points, answer: fc.answer, question: fc.question }
+  };
+  state.isFinalChallenge = true;
+
+  resetBuzzerState();
+  stopTimer();
+  state.timerExpired = false;
+  state.questionRevealed = false;
+
+  dom.clueCategory().textContent = fc.category;
+  dom.cluePointsBadge().textContent = `${points.toLocaleString()} pts`;
+  dom.clueAnswerText().textContent = fc.answer;
+  dom.questionReveal().textContent = fc.question;
+  dom.questionReveal().classList.remove('visible');
+  dom.showQuestionBtn().textContent = 'Show Answer';
+
+  dom.timerCount().textContent = state.settings.timerDuration + 's';
+  dom.timerCount().classList.remove('expired');
+  dom.timerBar().style.width = '100%';
+  dom.timerBar().classList.remove('low');
+  dom.timerBtn().textContent = 'START TIMER';
+  dom.buzzOrderList().innerHTML = '';
+
+  dom.clueScreen().classList.add('final-challenge');
+  dom.clueScreen().classList.remove('hidden');
 }
 
 // ── BUZZER LOGIC ───────────────────────────────────────────
@@ -864,6 +908,8 @@ function openSettings() {
     inputs.timerDuration.value = s.timerDuration;
     inputs.timerDurationVal.textContent = s.timerDuration + 's';
   }
+  const fcEl = $('setting-final-points');
+  if (fcEl) fcEl.value = s.finalChallengePoints;
 
   dom.modalOverlay().classList.remove('hidden');
 }
@@ -885,6 +931,8 @@ function saveSettings() {
     state.settings.timerDuration = parseInt(inputs.timerDuration.value);
     state.timerDuration = state.settings.timerDuration;
   }
+  const fcEl = $('setting-final-points');
+  if (fcEl) state.settings.finalChallengePoints = parseInt(fcEl.value) || 5000;
 
   dom.modalOverlay().classList.add('hidden');
   renderBoard();
@@ -949,6 +997,9 @@ function bindEvents() {
 
   // Reset scores
   dom.resetScoresBtn().addEventListener('click', resetScores);
+
+  // Final Challenge
+  dom.finalChallengeBtn().addEventListener('click', openFinalChallenge);
 
   // Live settings sliders
   const bindSlider = (inputId, valId, suffix, float = false) => {
