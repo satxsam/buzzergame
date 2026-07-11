@@ -1,0 +1,126 @@
+title: "Sunday School Review"
+teams:
+  - "Team 1"
+  - "Team 2"
+  - "Team 3"
+categories:
+  - name: "Samuel"
+    clues:
+      - points: 100
+        answer: "Samuel's mother"
+        question: "Who is Hannah?"
+        verse_lookup: true
+      - points: 200
+        answer: "One of two main \"jobs\" that Samuel had in Israel"
+        question: "What is prophet (or judge)?"
+        verse_lookup: true
+      - points: 300
+        answer: "The priest who explained to Samuel that God was talking to him"
+        question: "Who is Eli?"
+      - points: 400
+        answer: "The object the Philistines temporarily captured from Israel"
+        question: "What is the ark of the covenant?"
+      - points: 500
+        answer: "THe name of the stone Samuel setup to help Israel remember God's aid to them"
+        question: "What is Ebenezer?"
+        verse_lookup: true
+
+  - name: "Israel Rejects God for a King"
+    clues:
+      - points: 100
+        answer: "The One in control over who rules a nation"
+        question: "Who is God?"
+      - points: 200
+        answer: "The set of people God used to govern Israel before the kings"
+        question: "What are judges?"
+      - points: 300
+        answer: "The name of the first king chosen for Israel"
+        question: "Who is Saul?"
+      - points: 400
+        answer: "The action God says is *better* than sacrifices"
+        question: "What is obedience?"
+        verse_lookup: true
+      - points: 500
+        answer: "What Saul did instead of wiping out the Amalekites as God commanded"
+        question: "What is spare the king (and some animels)?"
+
+  - name: "Early David"
+    clues:
+      - points: 100
+        answer: "The giant champion that David couldn't stand because he mocked God"
+        question: "Who is Goliath?"
+      - points: 200
+        answer: "David's home town that would later be the birthplace of another King"
+        question: "What is Bethlehem?"
+      - points: 300
+        answer: "The term for the type of promise Jonathan and David made"
+        question: "What is a covenant?"
+        verse_lookup: true
+      - points: 400
+        answer: "The part of David God looked at to choose him over his more 'impressive' brothers"
+        question: "What is his heart?"
+      - points: 500
+        answer: "The coastal people group who were an ongoing problem for Israel (and David)"
+        question: "Who are the Philistines?"
+
+  - name: "Kingdom Transition"
+    clues:
+      - points: 100
+        answer: "The person who confessed that David was innocent of trying to kill him"
+        question: "Who is Saul?"
+      - points: 200
+        answer: "The position of Saul that was the reason David would not kill him"
+        question: "What is God's anointed king?"
+        verse_lookup: true
+      - points: 300
+        answer: "The action David took instead of killing Saul in the cave"
+        question: "What is cutting off part of his robe?"
+      - points: 400
+        answer: "The 'reward' the Amalekite got for reporting to David that he had killed Saul"
+        question: "What is death?"
+      - points: 500
+        answer: "David's response to hon and remember the death of Saul and Jonathan"
+        question: "What is write a song of sorrow?"
+
+  - name: "King David"
+    clues:
+      - points: 100
+        answer: "The length of time for which God primised to establish David's kingdom"
+        question: "What is forever?"
+      - points: 200
+        answer: "The prophet God used to confront David about his sin"
+        question: "Who is Nathan?"
+      - points: 300
+        answer: "The wife who David stole, but who God used to continue the royal family"
+        question: "Who is Bathsheba?"
+      - points: 400
+        answer: "The penalty for the sin David recognized in the parable that was about him"
+        question: "What is death?"
+        verse_lookup: true
+      - points: 500
+        answer: "The mighty solider who David murdered"
+        question: "Who is Uriah?"
+
+  - name: "Mixup"
+    clues:
+      - points: 100
+        answer: "The descendant of David who fulfilled the promise of an eternal kingdom"
+        question: "Who is Jesus?"
+        verse_lookup: true
+      - points: 200
+        answer: "The One Israel was *actually* rejecting when they said they wanted a king"
+        question: "Who is God?"
+      - points: 300
+        answer: "The king who actually *would* build a house for God"
+        question: "Who is Solomon?"
+      - points: 400
+        answer: "One of the covenants God made with people other than David"
+        question: "What is Noahic (or Abrahamic or Mosaic or New)?"
+      - points: 500
+        answer: "The meaning of the name Samuel"
+        question: "What is asked of God?"
+
+final_challenge:
+  category: "Final Challenge"
+  answer: "The two body parts referenced in the way everyone will honor Jesus as king eventually"
+  question: "What are knee (to bow) and tongue (to confess)?"
