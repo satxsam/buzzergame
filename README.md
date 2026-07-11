@@ -2,6 +2,8 @@
 
 A Jeopardy-style quiz game built for classroom use with USB buzzer dongles. Runs entirely in the browser — no install, no server required.
 
+![Sunday School Review game board](screenshot.png)
+
 ## Running the game
 
 Just open `index.html` in Chrome. That's it.
