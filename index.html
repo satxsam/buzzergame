@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quizardy!</title>
+  <title>Sunday School Review</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@700;900&display=swap" rel="stylesheet" />
@@ -17,11 +17,12 @@
 <div id="board-screen">
 
   <!-- Title -->
-  <div id="game-title">Quizardy!</div>
+  <div id="game-title">Sunday School Review</div>
 
   <!-- Scoreboard -->
   <div id="scoreboard-row">
     <div id="scoreboard"><!-- Populated by JS --></div>
+    <button id="undo-btn" title="Undo last score change" disabled>&#8617;</button>
     <button id="settings-btn" title="Settings">&#9881;</button>
   </div>
 
@@ -33,6 +34,7 @@
   <!-- Final Challenge button -->
   <div id="final-challenge-row">
     <button id="final-challenge-btn">&#9733; FINAL CHALLENGE &#9733;</button>
+    <button id="edit-game-btn">&#9998; EDIT GAME</button>
   </div>
 
 </div>
@@ -40,6 +42,9 @@
 <!-- ══════════════════════════════════════════════════════════
      CLUE SCREEN (full-screen overlay)
      ══════════════════════════════════════════════════════════ -->
+<div id="buzz-flash"></div>
+<div id="buzzers-open-banner" class="hidden">BUZZERS OPEN!</div>
+
 <div id="clue-screen" class="hidden">
 
   <!-- Header: category + points + return -->
@@ -67,7 +72,7 @@
       <div id="buzzer-controls">
         <button id="open-buzzers-btn">OPEN BUZZERS</button>
         <span style="font-size:13px;color:rgba(255,255,255,0.5);font-family:monospace;">
-          Keys&nbsp;1&nbsp;/&nbsp;2&nbsp;/&nbsp;3
+          Space&nbsp;to&nbsp;open&nbsp;&bull;&nbsp;1&nbsp;/&nbsp;2&nbsp;/&nbsp;3
         </span>
       </div>
       <div id="buzz-order-list"></div>
@@ -100,26 +105,49 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
+     EDITOR SCREEN (full-screen overlay)
+     ══════════════════════════════════════════════════════════ -->
+<div id="editor-screen" class="hidden">
+
+  <div id="editor-header">
+    <h2>&#9998; Edit Game</h2>
+    <div id="editor-actions">
+      <button id="editor-download-btn">&#11015; Download YAML</button>
+      <button id="editor-save-default-btn">&#128204; Save as Default</button>
+      <button id="editor-done-btn">&#10003; Done</button>
+    </div>
+  </div>
+
+  <div id="editor-body">
+    <!-- Populated by JS in renderEditor() -->
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
      SETTINGS MODAL
      ══════════════════════════════════════════════════════════ -->
 <div id="modal-overlay" class="hidden">
   <div id="settings-modal">
     <h2>&#9881; Settings</h2>
 
-    <!-- Team names -->
+    <!-- Team names & colors -->
     <div class="settings-section">
-      <h3>Team Names</h3>
+      <h3>Teams</h3>
       <div class="settings-row">
         <label>Team 1 (key 1)</label>
         <input type="text" id="setting-team-name-0" placeholder="Team 1" />
+        <input type="color" id="setting-team-color-0" value="#dd2222" title="Team 1 color" class="team-color-input" />
       </div>
       <div class="settings-row">
         <label>Team 2 (key 2)</label>
         <input type="text" id="setting-team-name-1" placeholder="Team 2" />
+        <input type="color" id="setting-team-color-1" value="#ddcc00" title="Team 2 color" class="team-color-input" />
       </div>
       <div class="settings-row">
         <label>Team 3 (key 3)</label>
         <input type="text" id="setting-team-name-2" placeholder="Team 3" />
+        <input type="color" id="setting-team-color-2" value="#22aa44" title="Team 3 color" class="team-color-input" />
       </div>
     </div>
 
@@ -210,6 +238,20 @@
       <button id="confirm-yes">Yes, leave</button>
       <button id="confirm-no">Stay</button>
     </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     GAME OVER SCREEN
+     ══════════════════════════════════════════════════════════ -->
+<div id="gameover-screen" class="hidden">
+  <div id="gameover-content">
+    <div id="gameover-trophy">&#127942;</div>
+    <div id="gameover-title">GAME OVER!</div>
+    <div id="gameover-winner-label">WINNER</div>
+    <div id="gameover-winner-name"></div>
+    <div id="gameover-scores"></div>
+    <button id="gameover-play-again">&#9654; PLAY AGAIN</button>
   </div>
 </div>
 

@@ -5,8 +5,9 @@
 'use strict';
 
 // ── DEFAULT GAME DATA ──────────────────────────────────────
+
 const DEFAULT_GAME = {
-  title: "Sunday School Quizardy!",
+  title: "Sunday School Review",
   teams: ["Team 1", "Team 2", "Team 3"],
   categories: [
     {
@@ -111,8 +112,10 @@ const state = {
   timerExpired: false,
 
   // Settings
+  lastScores: null,   // snapshot for undo
   settings: {
     teamNames: ["Team 1", "Team 2", "Team 3"],
+    teamColors: ["#dd2222", "#ddcc00", "#22aa44"],
     teamWeights: [1.0, 1.0, 1.0],
     randomWindow: 300,       // ms
     displayDelay: 500,       // ms
@@ -364,6 +367,37 @@ function playTimerExpired() {
   } catch (e) {}
 }
 
+function playBuzzersOpen() {
+  try {
+    const ctx = getAudioContext();
+    // Two quick ascending tones — a friendly "ready!" cue
+    [[520, 0], [780, 0.13]].forEach(([freq, offset]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + offset);
+      gain.gain.setValueAtTime(0.35, ctx.currentTime + offset);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.18);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + offset);
+      osc.stop(ctx.currentTime + offset + 0.2);
+    });
+  } catch (e) {}
+}
+
+function showBuzzersOpenBanner() {
+  const el = $('buzzers-open-banner');
+  if (!el) return;
+  el.classList.remove('hidden');
+  // Restart animation
+  el.style.animation = 'none';
+  void el.offsetWidth;
+  el.style.animation = '';
+  clearTimeout(state._bannerTimer);
+  state._bannerTimer = setTimeout(() => el.classList.add('hidden'), 1100);
+}
+
 // ── DOM REFS ───────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 
@@ -399,6 +433,16 @@ const dom = {
   confirmOverlay:    () => $('confirm-overlay'),
   confirmYes:        () => $('confirm-yes'),
   confirmNo:         () => $('confirm-no'),
+  editorScreen:      () => $('editor-screen'),
+  editorBody:        () => $('editor-body'),
+  editorDownloadBtn:       () => $('editor-download-btn'),
+  editorSaveDefaultBtn:    () => $('editor-save-default-btn'),
+  editorDoneBtn:           () => $('editor-done-btn'),
+  editGameBtn:       () => $('edit-game-btn'),
+  undoBtn:           () => $('undo-btn'),
+  gameoverScreen:    () => $('gameover-screen'),
+  gameoverWinnerName:() => $('gameover-winner-name'),
+  gameoverScores:    () => $('gameover-scores'),
 };
 
 // Settings inputs (dynamically looked up)
@@ -408,6 +452,11 @@ function getSettingsInputs() {
       $('setting-team-name-0'),
       $('setting-team-name-1'),
       $('setting-team-name-2')
+    ],
+    teamColors: [
+      $('setting-team-color-0'),
+      $('setting-team-color-1'),
+      $('setting-team-color-2')
     ],
     teamWeights: [
       $('setting-weight-0'),
@@ -430,9 +479,36 @@ function getSettingsInputs() {
 
 // ── INIT ───────────────────────────────────────────────────
 function init() {
-  loadGameData(DEFAULT_GAME);
+  loadInitialGame();
   bindEvents();
 }
+
+const STORAGE_KEY = 'ssreview.defaultGame';
+
+function loadInitialGame() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.categories) {
+        loadGameData(parsed);
+        return;
+      }
+    }
+  } catch (e) {}
+  loadGameData(DEFAULT_GAME);
+}
+
+function saveAsDefault() {
+  applyEditorChanges();
+  state.game.teams = [...state.settings.teamNames];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.game));
+  const btn = dom.editorSaveDefaultBtn();
+  const orig = btn.textContent;
+  btn.textContent = '✓ Saved!';
+  setTimeout(() => { btn.textContent = orig; }, 1500);
+}
+
 
 function loadGameData(gameData) {
   state.game = gameData;
@@ -474,8 +550,9 @@ function renderBoard() {
     teamEl.id = `team-score-${i}`;
     teamEl.innerHTML = `
       <div class="team-name">${escHtml(name)}</div>
-      <div class="team-points" id="team-points-${i}">${formatScore(state.scores[i])}</div>
+      <div class="team-points" id="team-points-${i}" title="Click to edit score">${formatScore(state.scores[i])}</div>
     `;
+    teamEl.querySelector('.team-points').addEventListener('click', () => editScore(i));
     sb.appendChild(teamEl);
   });
 
@@ -513,12 +590,59 @@ function renderBoard() {
   }
 }
 
+function saveScoreSnapshot() {
+  state.lastScores = [...state.scores];
+  const btn = dom.undoBtn();
+  if (btn) btn.disabled = false;
+}
+
+function undoScores() {
+  if (!state.lastScores) return;
+  state.scores = [...state.lastScores];
+  state.lastScores = null;
+  const btn = dom.undoBtn();
+  if (btn) btn.disabled = true;
+  updateScoreboard();
+}
+
+function editScore(teamIdx) {
+  const el = document.getElementById(`team-points-${teamIdx}`);
+  if (!el || el.querySelector('input')) return; // already editing
+
+  const current = state.scores[teamIdx];
+  el.innerHTML = '';
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.value = current;
+  input.className = 'score-edit-input';
+  el.appendChild(input);
+  input.focus();
+  input.select();
+
+  function commit() {
+    const val = parseInt(input.value, 10);
+    if (!isNaN(val) && val !== current) {
+      saveScoreSnapshot();
+      state.scores[teamIdx] = val;
+    }
+    updateScoreboard();
+  }
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') { updateScoreboard(); } // cancel
+  });
+  input.addEventListener('blur', commit);
+}
+
 function updateScoreboard() {
   state.settings.teamNames.forEach((name, i) => {
     const nameEl = document.getElementById(`team-score-${i}`)?.querySelector('.team-name');
     const pointsEl = document.getElementById(`team-points-${i}`);
     if (nameEl) nameEl.textContent = name;
-    if (pointsEl) pointsEl.textContent = formatScore(state.scores[i]);
+    if (pointsEl && !pointsEl.querySelector('input')) {
+      pointsEl.textContent = formatScore(state.scores[i]);
+    }
   });
 }
 
@@ -626,13 +750,12 @@ function setupVersePanel(hasVerse) {
 }
 
 function toggleVerseAward(teamIdx, btn) {
+  saveScoreSnapshot();
   if (state.verseAwardedTeams.has(teamIdx)) {
-    // Un-award
     state.verseAwardedTeams.delete(teamIdx);
     state.scores[teamIdx] -= state.settings.versePoints;
     btn.classList.remove('awarded');
   } else {
-    // Award
     state.verseAwardedTeams.add(teamIdx);
     state.scores[teamIdx] += state.settings.versePoints;
     btn.classList.add('awarded');
@@ -644,18 +767,20 @@ function toggleVerseAward(teamIdx, btn) {
 function closeClueScreen(markUsed = true) {
   if (markUsed && state.currentClue) {
     const { catIdx, clueIdx } = state.currentClue;
-    state.usedCells[catIdx][clueIdx] = true;
-    // Dim the cell on the board
-    const cells = document.querySelectorAll('.clue-cell');
-    cells.forEach(cell => {
-      if (Number(cell.dataset.cat) === catIdx && Number(cell.dataset.clue) === clueIdx) {
-        cell.classList.add('used');
-      }
-    });
+    if (catIdx >= 0) {
+      state.usedCells[catIdx][clueIdx] = true;
+      const cells = document.querySelectorAll('.clue-cell');
+      cells.forEach(cell => {
+        if (Number(cell.dataset.cat) === catIdx && Number(cell.dataset.clue) === clueIdx) {
+          cell.classList.add('used');
+        }
+      });
+    }
   }
 
   stopTimer();
   resetBuzzerState();
+  const wasFinalChallenge = state.isFinalChallenge;
   state.currentClue = null;
   state.isFinalChallenge = false;
   state.verseAwardedTeams = new Set();
@@ -664,6 +789,7 @@ function closeClueScreen(markUsed = true) {
   dom.clueScreen().classList.remove('final-challenge');
   dom.clueScreen().classList.add('hidden');
   updateScoreboard();
+  if (wasFinalChallenge) showGameOver();
 }
 
 function openFinalChallenge() {
@@ -701,6 +827,37 @@ function openFinalChallenge() {
   dom.clueScreen().classList.remove('hidden');
 }
 
+function showGameOver() {
+  const names = state.game.teams || state.settings.teamNames;
+  const maxScore = Math.max(...state.scores);
+  const winners = state.scores
+    .map((s, i) => ({ name: names[i] || `Team ${i + 1}`, score: s, idx: i }))
+    .filter(t => t.score === maxScore);
+
+  const winnerText = winners.map(t => t.name).join(' & ');
+  dom.gameoverWinnerName().textContent = winnerText;
+
+  const scoresEl = dom.gameoverScores();
+  scoresEl.innerHTML = '';
+  state.scores.forEach((score, i) => {
+    const isWinner = score === maxScore;
+    const card = document.createElement('div');
+    card.className = 'gameover-score-card' + (isWinner ? ' winner' : '');
+    card.innerHTML = `<span class="gs-name">${names[i] || `Team ${i + 1}`}</span>
+                      <span class="gs-pts">${score.toLocaleString()}</span>`;
+    scoresEl.appendChild(card);
+  });
+
+  dom.gameoverScreen().classList.remove('hidden');
+  launchConfetti();
+}
+
+function closeGameOver() {
+  dom.gameoverScreen().classList.add('hidden');
+  state.scores = state.scores.map(() => 0);
+  updateScoreboard();
+}
+
 // ── BUZZER LOGIC ───────────────────────────────────────────
 function resetBuzzerState() {
   state.buzzerArmed = false;
@@ -736,12 +893,24 @@ function armBuzzers() {
   dom.buzzOrderList().innerHTML = '';
   dom.openBuzzersBtn().textContent = 'CLOSE BUZZERS';
   dom.openBuzzersBtn().classList.add('armed');
+  playBuzzersOpen();
+  showBuzzersOpenBanner();
 }
 
 function disarmBuzzers() {
   state.buzzerArmed = false;
   dom.openBuzzersBtn().textContent = 'OPEN BUZZERS';
   dom.openBuzzersBtn().classList.remove('armed');
+}
+
+function flashTeamColor(teamIdx) {
+  const color = state.settings.teamColors[teamIdx] || '#ffffff';
+  const el = $('buzz-flash');
+  if (!el) return;
+  el.style.background = color;
+  el.classList.remove('active');
+  void el.offsetWidth; // force reflow to restart animation
+  el.classList.add('active');
 }
 
 /**
@@ -757,6 +926,7 @@ function handleBuzzIn(teamIdx) {
   state.buzzEvents.push({ teamIdx, timestamp: ts });
 
   playBuzzIn();
+  flashTeamColor(teamIdx);
 
   if (state.buzzResolved) {
     // Window already resolved — append this late buzz directly to the displayed order
@@ -826,13 +996,16 @@ function renderBuzzOrder() {
 
   state.displayedBuzzOrder.forEach((teamIdx, pos) => {
     const name = state.settings.teamNames[teamIdx];
+    const color = state.settings.teamColors[teamIdx] || '#ffffff';
+    const isLeader = pos === state.currentBuzzerPos;
     const entry = document.createElement('div');
-    entry.className = 'buzz-entry' + (pos === state.currentBuzzerPos ? ' leader' : '');
+    entry.className = 'buzz-entry' + (isLeader ? ' leader' : '');
     entry.id = `buzz-entry-${pos}`;
+    entry.style.setProperty('--team-color', color);
     entry.innerHTML = `
       <span class="buzz-rank">${pos + 1}.</span>
       <span class="buzz-team-name">${escHtml(name)}</span>
-      ${pos === state.currentBuzzerPos ? '<span class="buzz-badge">Buzzed In!</span>' : ''}
+      ${isLeader ? '<span class="buzz-badge">Buzzed In!</span>' : ''}
     `;
     list.appendChild(entry);
 
@@ -852,6 +1025,7 @@ function handleCorrect() {
     return;
   }
 
+  saveScoreSnapshot();
   state.scores[activeTeam] += state.currentClue.clue.points;
   playCorrect();
   launchConfetti();
@@ -940,6 +1114,10 @@ function openSettings() {
     if (el) el.value = s.teamNames[i];
   });
 
+  inputs.teamColors.forEach((el, i) => {
+    if (el) el.value = s.teamColors[i];
+  });
+
   inputs.teamWeights.forEach((el, i) => {
     if (el) {
       el.value = s.teamWeights[i];
@@ -972,6 +1150,10 @@ function saveSettings() {
 
   inputs.teamNames.forEach((el, i) => {
     if (el) state.settings.teamNames[i] = el.value.trim() || `Team ${i + 1}`;
+  });
+
+  inputs.teamColors.forEach((el, i) => {
+    if (el) state.settings.teamColors[i] = el.value;
   });
 
   inputs.teamWeights.forEach((el, i) => {
@@ -1105,6 +1287,18 @@ function bindEvents() {
   });
   dom.confirmNo().addEventListener('click', hideConfirm);
 
+  // Editor
+  dom.editGameBtn().addEventListener('click', openEditor);
+  dom.undoBtn().addEventListener('click', undoScores);
+  $('gameover-play-again').addEventListener('click', closeGameOver);
+  dom.editorDoneBtn().addEventListener('click', () => {
+    applyEditorChanges();
+    renderBoard();
+    closeEditor();
+  });
+  dom.editorDownloadBtn().addEventListener('click', downloadYAML);
+  dom.editorSaveDefaultBtn().addEventListener('click', saveAsDefault);
+
   // Keyboard
   document.addEventListener('keydown', onKeyDown, true);
 }
@@ -1113,10 +1307,17 @@ function bindEvents() {
 function onKeyDown(e) {
   const clueOpen = !dom.clueScreen().classList.contains('hidden');
 
-  // Escape — close clue screen
+  // Escape — close clue screen / editor / dialogs
   if (e.key === 'Escape') {
     if (!$('confirm-overlay').classList.contains('hidden')) {
       hideConfirm();
+      e.preventDefault();
+      return;
+    }
+    if (!$('editor-screen').classList.contains('hidden')) {
+      applyEditorChanges();
+      renderBoard();
+      closeEditor();
       e.preventDefault();
       return;
     }
@@ -1135,6 +1336,13 @@ function onKeyDown(e) {
     }
   }
 
+  // Space — toggle buzzers
+  if (clueOpen && e.key === ' ') {
+    e.preventDefault();
+    if (!e.repeat) toggleBuzzers();
+    return;
+  }
+
   // Buzz-in keys 1, 2, 3
   if (clueOpen && (e.key === '1' || e.key === '2' || e.key === '3')) {
     e.preventDefault(); // always prevent default for these keys when clue is open
@@ -1147,6 +1355,354 @@ function onKeyDown(e) {
     return;
   }
 }
+
+// ── EDITOR ────────────────────────────────────────────────
+function openEditor() {
+  renderEditor();
+  dom.editorScreen().classList.remove('hidden');
+}
+
+function closeEditor() {
+  dom.editorScreen().classList.add('hidden');
+}
+
+function renderEditor() {
+  const body = dom.editorBody();
+  body.innerHTML = '';
+
+  const game = state.game;
+
+  // ── Top fields: title + team names ──
+  const topSection = document.createElement('div');
+  topSection.className = 'editor-top-fields';
+
+  // Title
+  const titleGroup = document.createElement('div');
+  titleGroup.className = 'editor-field-group editor-title-field';
+  titleGroup.innerHTML = `<label>Game Title</label>`;
+  const titleInput = document.createElement('input');
+  titleInput.type = 'text';
+  titleInput.className = 'editor-input';
+  titleInput.value = game.title || '';
+  titleInput.placeholder = 'Game title…';
+  titleInput.dataset.field = 'title';
+  titleGroup.appendChild(titleInput);
+  topSection.appendChild(titleGroup);
+
+  // Team names
+  for (let t = 0; t < 3; t++) {
+    const tGroup = document.createElement('div');
+    tGroup.className = 'editor-field-group';
+    tGroup.innerHTML = `<label>Team ${t + 1} Name</label>`;
+    const tInput = document.createElement('input');
+    tInput.type = 'text';
+    tInput.className = 'editor-input';
+    tInput.value = state.settings.teamNames[t] || '';
+    tInput.placeholder = `Team ${t + 1}`;
+    tInput.dataset.teamIdx = t;
+    tGroup.appendChild(tInput);
+    topSection.appendChild(tGroup);
+  }
+
+  body.appendChild(topSection);
+
+  // ── Categories ──
+  const catTitle = document.createElement('h3');
+  catTitle.className = 'editor-section-title';
+  catTitle.textContent = 'Categories';
+  body.appendChild(catTitle);
+
+  game.categories.forEach((cat, catIdx) => {
+    body.appendChild(buildCategoryCard(cat, catIdx));
+  });
+
+  // Add Category button
+  const addCatBtn = document.createElement('button');
+  addCatBtn.className = 'editor-add-category-btn';
+  addCatBtn.textContent = '＋ Add Category';
+  addCatBtn.disabled = game.categories.length >= 6;
+  addCatBtn.addEventListener('click', () => {
+    game.categories.push({ name: 'New Category', clues: [{ points: 100, answer: '', question: '' }] });
+    renderEditor();
+    // scroll to bottom to reveal new category
+    dom.editorBody().scrollTop = dom.editorBody().scrollHeight;
+  });
+  body.appendChild(addCatBtn);
+
+  // ── Final Challenge ──
+  const fcTitle = document.createElement('h3');
+  fcTitle.className = 'editor-section-title';
+  fcTitle.textContent = 'Final Challenge';
+  body.appendChild(fcTitle);
+
+  const fc = game.final_challenge || {};
+  const fcSection = document.createElement('div');
+  fcSection.className = 'editor-final-section';
+
+  fcSection.appendChild(buildFieldGroup('Category Name', 'text', fc.category || '', 'fc-category', 'e.g. Final Challenge'));
+  fcSection.appendChild(buildFieldGroup('Answer (the clue shown to players)', 'textarea', fc.answer || '', 'fc-answer'));
+  fcSection.appendChild(buildFieldGroup('Question (the correct response)', 'textarea', fc.question || '', 'fc-question'));
+
+  body.appendChild(fcSection);
+}
+
+function buildFieldGroup(labelText, type, value, dataKey, placeholder) {
+  const group = document.createElement('div');
+  group.className = 'editor-field-group';
+  group.innerHTML = `<label>${labelText}</label>`;
+  let el;
+  if (type === 'textarea') {
+    el = document.createElement('textarea');
+    el.className = 'editor-input editor-textarea';
+    el.rows = 2;
+    el.textContent = value;
+  } else {
+    el = document.createElement('input');
+    el.type = type;
+    el.className = 'editor-input';
+    el.value = value;
+    if (placeholder) el.placeholder = placeholder;
+  }
+  el.dataset.key = dataKey;
+  group.appendChild(el);
+  return group;
+}
+
+function buildCategoryCard(cat, catIdx) {
+  const card = document.createElement('div');
+  card.className = 'editor-category-card';
+  card.dataset.catIdx = catIdx;
+
+  // Category header row: name input + remove button
+  const headerRow = document.createElement('div');
+  headerRow.className = 'editor-category-header';
+
+  const catLabel = document.createElement('span');
+  catLabel.style.cssText = 'font-family:Bangers,cursive;color:var(--gold);font-size:15px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;';
+  catLabel.textContent = `Cat ${catIdx + 1}`;
+  headerRow.appendChild(catLabel);
+
+  const catNameInput = document.createElement('input');
+  catNameInput.type = 'text';
+  catNameInput.className = 'editor-input';
+  catNameInput.value = cat.name || '';
+  catNameInput.placeholder = 'Category name…';
+  catNameInput.dataset.catName = catIdx;
+  headerRow.appendChild(catNameInput);
+
+  const removeCatBtn = document.createElement('button');
+  removeCatBtn.className = 'editor-remove-cat-btn';
+  removeCatBtn.textContent = '✕ Remove';
+  removeCatBtn.disabled = state.game.categories.length <= 1;
+  removeCatBtn.addEventListener('click', () => {
+    state.game.categories.splice(catIdx, 1);
+    renderEditor();
+  });
+  headerRow.appendChild(removeCatBtn);
+  card.appendChild(headerRow);
+
+  // Column headers for clue rows
+  const clueHeaders = document.createElement('div');
+  clueHeaders.className = 'editor-clue-headers';
+  clueHeaders.innerHTML = `
+    <span>Points</span>
+    <span>Answer (shown to players)</span>
+    <span>Question (correct response)</span>
+    <span style="text-align:center">Verse</span>
+    <span></span>
+  `;
+  card.appendChild(clueHeaders);
+
+  // Clue rows
+  cat.clues.forEach((clue, clueIdx) => {
+    card.appendChild(buildClueRow(clue, catIdx, clueIdx));
+  });
+
+  // Add clue button
+  const addClueBtn = document.createElement('button');
+  addClueBtn.className = 'editor-add-clue-btn';
+  addClueBtn.textContent = '＋ Add Clue';
+  addClueBtn.disabled = cat.clues.length >= 5;
+  addClueBtn.addEventListener('click', () => {
+    // Pick next logical points value
+    const used = cat.clues.map(c => c.points);
+    const next = [100,200,300,400,500].find(p => !used.includes(p)) || 100;
+    cat.clues.push({ points: next, answer: '', question: '' });
+    renderEditor();
+  });
+  card.appendChild(addClueBtn);
+
+  return card;
+}
+
+function buildClueRow(clue, catIdx, clueIdx) {
+  const row = document.createElement('div');
+  row.className = 'editor-clue-row';
+
+  // Points selector
+  const pointsSel = document.createElement('select');
+  [100, 200, 300, 400, 500].forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p;
+    opt.textContent = p;
+    if (p === clue.points) opt.selected = true;
+    pointsSel.appendChild(opt);
+  });
+  pointsSel.dataset.catIdx = catIdx;
+  pointsSel.dataset.clueIdx = clueIdx;
+  pointsSel.dataset.field = 'points';
+  row.appendChild(pointsSel);
+
+  // Answer textarea
+  const answerTA = document.createElement('textarea');
+  answerTA.className = 'editor-input editor-textarea';
+  answerTA.rows = 2;
+  answerTA.value = clue.answer || '';
+  answerTA.placeholder = 'Answer text shown to players…';
+  answerTA.dataset.catIdx = catIdx;
+  answerTA.dataset.clueIdx = clueIdx;
+  answerTA.dataset.field = 'answer';
+  row.appendChild(answerTA);
+
+  // Question textarea
+  const questionTA = document.createElement('textarea');
+  questionTA.className = 'editor-input editor-textarea';
+  questionTA.rows = 2;
+  questionTA.value = clue.question || '';
+  questionTA.placeholder = 'Correct question response…';
+  questionTA.dataset.catIdx = catIdx;
+  questionTA.dataset.clueIdx = clueIdx;
+  questionTA.dataset.field = 'question';
+  row.appendChild(questionTA);
+
+  // Verse lookup checkbox
+  const verseWrap = document.createElement('div');
+  verseWrap.className = 'editor-clue-verse';
+  const verseCb = document.createElement('input');
+  verseCb.type = 'checkbox';
+  verseCb.checked = !!clue.verse_lookup;
+  verseCb.dataset.catIdx = catIdx;
+  verseCb.dataset.clueIdx = clueIdx;
+  verseCb.dataset.field = 'verse_lookup';
+  const verseLabel = document.createElement('label');
+  verseLabel.textContent = 'Verse';
+  verseWrap.appendChild(verseCb);
+  verseWrap.appendChild(verseLabel);
+  row.appendChild(verseWrap);
+
+  // Delete button
+  const delBtn = document.createElement('button');
+  delBtn.className = 'editor-delete-clue-btn';
+  delBtn.title = 'Remove this clue';
+  delBtn.textContent = '✕';
+  delBtn.disabled = state.game.categories[catIdx].clues.length <= 1;
+  delBtn.addEventListener('click', () => {
+    state.game.categories[catIdx].clues.splice(clueIdx, 1);
+    renderEditor();
+  });
+  row.appendChild(delBtn);
+
+  return row;
+}
+
+function applyEditorChanges() {
+  const body = dom.editorBody();
+  const game = state.game;
+
+  // Title
+  const titleInput = body.querySelector('[data-field="title"]');
+  if (titleInput) game.title = titleInput.value.trim() || game.title;
+
+  // Team names
+  body.querySelectorAll('[data-team-idx]').forEach(el => {
+    const i = parseInt(el.dataset.teamIdx);
+    state.settings.teamNames[i] = el.value.trim() || `Team ${i + 1}`;
+  });
+
+  // Categories — name inputs
+  body.querySelectorAll('[data-cat-name]').forEach(el => {
+    const i = parseInt(el.dataset.catName);
+    if (game.categories[i]) game.categories[i].name = el.value.trim() || game.categories[i].name;
+  });
+
+  // Clue fields
+  body.querySelectorAll('[data-cat-idx][data-clue-idx][data-field]').forEach(el => {
+    const ci = parseInt(el.dataset.catIdx);
+    const qi = parseInt(el.dataset.clueIdx);
+    const field = el.dataset.field;
+    if (!game.categories[ci] || !game.categories[ci].clues[qi]) return;
+    const clue = game.categories[ci].clues[qi];
+    if (field === 'points') {
+      clue.points = parseInt(el.value);
+    } else if (field === 'answer') {
+      clue.answer = el.value.trim();
+    } else if (field === 'question') {
+      clue.question = el.value.trim();
+    } else if (field === 'verse_lookup') {
+      if (el.checked) clue.verse_lookup = true;
+      else delete clue.verse_lookup;
+    }
+  });
+
+  // Final challenge fields
+  if (!game.final_challenge) game.final_challenge = {};
+  const fcCat = body.querySelector('[data-key="fc-category"]');
+  const fcAns = body.querySelector('[data-key="fc-answer"]');
+  const fcQst = body.querySelector('[data-key="fc-question"]');
+  if (fcCat) game.final_challenge.category = fcCat.value.trim();
+  if (fcAns) game.final_challenge.answer = fcAns.value.trim();
+  if (fcQst) game.final_challenge.question = fcQst.value.trim();
+
+  // Reset used cells and scores to reflect possibly-changed structure
+  state.usedCells = game.categories.map(cat => cat.clues.map(() => false));
+  state.scores = [0, 0, 0];
+}
+
+function generateYAML(game) {
+  const q = s => {
+    if (!s) return '""';
+    if (/[:#\[\]{},&*?|<>=!%@`]/.test(s) || s.includes('"') || s.startsWith(' ')) {
+      return '"' + s.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+    }
+    return s;
+  };
+  const lines = [];
+  lines.push(`title: ${q(game.title)}`);
+  lines.push(`teams:`);
+  (game.teams || state.settings.teamNames).forEach(t => lines.push(`  - ${q(t)}`));
+  lines.push(`categories:`);
+  game.categories.forEach(cat => {
+    lines.push(`  - name: ${q(cat.name)}`);
+    lines.push(`    clues:`);
+    cat.clues.forEach(clue => {
+      lines.push(`      - points: ${clue.points}`);
+      lines.push(`        answer: ${q(clue.answer || '')}`);
+      lines.push(`        question: ${q(clue.question || '')}`);
+      if (clue.verse_lookup) lines.push(`        verse_lookup: true`);
+    });
+  });
+  if (game.final_challenge) {
+    const fc = game.final_challenge;
+    lines.push(`final_challenge:`);
+    lines.push(`  category: ${q(fc.category || '')}`);
+    lines.push(`  answer: ${q(fc.answer || '')}`);
+    lines.push(`  question: ${q(fc.question || '')}`);
+  }
+  return lines.join('\n') + '\n';
+}
+
+function downloadYAML() {
+  applyEditorChanges(); // sync form → state first
+  // Update teams array in game to match current team names
+  state.game.teams = [...state.settings.teamNames];
+  const text = generateYAML(state.game);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/yaml' }));
+  a.download = (state.game.title || 'game').replace(/[^a-z0-9]/gi, '-').toLowerCase() + '.yaml';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 
 // ── BOOTSTRAP ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', init);
