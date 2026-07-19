@@ -117,6 +117,7 @@ const state = {
     teamNames: ["Team 1", "Team 2", "Team 3"],
     teamColors: ["#dd2222", "#ddcc00", "#22aa44"],
     teamWeights: [1.0, 1.0, 1.0],
+    rubberBand: false,
     randomWindow: 300,       // ms
     displayDelay: 500,       // ms
     timerDuration: 15,       // seconds
@@ -468,6 +469,7 @@ function getSettingsInputs() {
       $('setting-weight-val-1'),
       $('setting-weight-val-2')
     ],
+    rubberBand:      $('setting-rubber-band'),
     randomWindow:    $('setting-random-window'),
     randomWindowVal: $('setting-random-window-val'),
     displayDelay:    $('setting-display-delay'),
@@ -620,11 +622,13 @@ function editScore(teamIdx) {
   input.select();
 
   function commit() {
+    input.removeEventListener('blur', commit); // prevent double-fire on Enter
     const val = parseInt(input.value, 10);
     if (!isNaN(val) && val !== current) {
       saveScoreSnapshot();
       state.scores[teamIdx] = val;
     }
+    el.innerHTML = ''; // clear input before updateScoreboard runs its guard
     updateScoreboard();
   }
 
@@ -895,6 +899,7 @@ function armBuzzers() {
   dom.openBuzzersBtn().classList.add('armed');
   playBuzzersOpen();
   showBuzzersOpenBanner();
+  startTimer();
 }
 
 function disarmBuzzers() {
@@ -940,7 +945,7 @@ function handleBuzzIn(teamIdx) {
 
 /**
  * Resolves which teams are "simultaneous" (within the window of the first buzz),
- * picks a winner among them by weighted random, then builds the final order.
+ * picks a winner (rubber band: auto-win if first buzzer is trailing; else weighted random), then builds the final order.
  */
 function resolveAndDisplayBuzzOrder() {
   if (state.buzzEvents.length === 0) return;
@@ -956,8 +961,17 @@ function resolveAndDisplayBuzzOrder() {
   // Sort late by timestamp
   late.sort((a, b) => a.timestamp - b.timestamp);
 
-  // Weighted random among simultaneous
-  const winner = weightedRandom(simultaneous);
+  // Pick winner: if rubber band is on and the first buzzer isn't the score leader,
+  // they win automatically. Otherwise use weighted random among simultaneous.
+  let winner;
+  if (state.settings.rubberBand) {
+    const firstBuzzer = events[0];
+    const maxScore = Math.max(...state.scores);
+    const firstIsLeader = state.scores[firstBuzzer.teamIdx] >= maxScore;
+    winner = firstIsLeader ? weightedRandom(simultaneous) : firstBuzzer;
+  } else {
+    winner = weightedRandom(simultaneous);
+  }
 
   // Remaining simultaneous (excluding winner), sorted by ts
   const remainingSimul = simultaneous
@@ -1125,6 +1139,8 @@ function openSettings() {
     }
   });
 
+  if (inputs.rubberBand) inputs.rubberBand.checked = s.rubberBand;
+
   if (inputs.randomWindow) {
     inputs.randomWindow.value = s.randomWindow;
     inputs.randomWindowVal.textContent = s.randomWindow + 'ms';
@@ -1159,6 +1175,8 @@ function saveSettings() {
   inputs.teamWeights.forEach((el, i) => {
     if (el) state.settings.teamWeights[i] = parseFloat(el.value);
   });
+
+  if (inputs.rubberBand) state.settings.rubberBand = inputs.rubberBand.checked;
 
   if (inputs.randomWindow) state.settings.randomWindow = parseInt(inputs.randomWindow.value);
   if (inputs.displayDelay) state.settings.displayDelay = parseInt(inputs.displayDelay.value);
