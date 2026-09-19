@@ -280,9 +280,11 @@ function parseScalar(s) {
   if (s === 'false') return false;
   if (/^-?\d+(\.\d+)?$/.test(s)) return Number(s);
   // Strip surrounding quotes
-  if ((s.startsWith('"') && s.endsWith('"')) ||
-      (s.startsWith("'") && s.endsWith("'"))) {
-    return s.slice(1, -1);
+  if (s.startsWith('"') && s.endsWith('"')) {
+    return s.slice(1, -1).replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+  }
+  if (s.startsWith("'") && s.endsWith("'")) {
+    return s.slice(1, -1).replace(/''/g, "'");
   }
   return s;
 }

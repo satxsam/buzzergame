@@ -1,0 +1,125 @@
+title: "Year 2 Book 2 — Lessons 24–31 Review"
+teams:
+  - "Team 1"
+  - "Team 2"
+  - "Team 3"
+categories:
+  - name: "Solomon"
+    clues:
+      - points: 100
+        answer: "The thing Solomon asked God for"
+        question: "What is wisdom?"
+      - points: 200
+        answer: "One of the things of God David told Solomon to \"keep\""
+        question: "What are his statutes (also commandments, rules, laws, or testimonies)?"
+        verse_lookup: true
+      - points: 300
+        answer: "Something God gave Solomon in addition to wisdom"
+        question: "What is wealth (or honor)?"
+      - points: 400
+        answer: "The things Solomon ended up building later in life that were very unwise"
+        question: "What are idols (or shrines/altars to false gods)?"
+      - points: 500
+        answer: "The thing Deuteronomy commanded kings to avoid so their heart wouldn't turn away"
+        question: "What is having many wives?"
+
+  - name: "The Temple"
+    clues:
+      - points: 100
+        answer: "The king responsible for building the temple"
+        question: "Who is Solomon?"
+      - points: 200
+        answer: "The object placed in the temple during its dedication"
+        question: "What is the ark of the covenant?"
+      - points: 300
+        answer: "The attribute of God that filled the temple when it was dedicated"
+        question: "What is God's glory?"
+      - points: 400
+        answer: "The feeling or attitude of the people heading home after 8 days of dedication"
+        question: "What is joy (or gladness)?"
+        verse_lookup: true
+      - points: 500
+        answer: "The things that serve as God's temple now (after Jesus came)"
+        question: "What are our bodies?"
+        verse_lookup: true
+
+  - name: "Northern Kingdom"
+    clues:
+      - points: 100
+        answer: "The first king of the northern part of the divided kingdom"
+        question: "Who is Jeroboam?"
+      - points: 200
+        answer: "The number of tribes that split to form the northern kingdom"
+        question: "What is 10?"
+      - points: 300
+        answer: "The number of truly good kings in the history of the northern kingdom"
+        question: "What is zero?"
+      - points: 400
+        answer: "The ultimate fate of the northern kingdom after about 200 years of disobedience"
+        question: "What is defeat (or exile)?"
+      - points: 500
+        answer: "Things Jeroboam built for people to worship hoping they would not go to the temple"
+        question: "What are golden calves?"
+        verse_lookup: true
+
+  - name: "Southern Kingdom"
+    clues:
+      - points: 100
+        answer: "The name given to the divided southern kingdom"
+        question: "What is Judah?"
+      - points: 200
+        answer: "The (mostly) faithful king who God protected from defeat by Assyria"
+        question: "Who is Hezekiah?"
+      - points: 300
+        answer: "The wise response of Hezekiah after the threat from Sennacherib"
+        question: "What is prayer?"
+        verse_lookup: true
+      - points: 400
+        answer: "The number of Assyrian soldiers killed by the Angel of the Lord in one night"
+        question: "What is 185,000?"
+      - points: 500
+        answer: "The terrible king who built idols, murdered his own people, and led Judah into great sin"
+        question: "Who is Manasseh?"
+
+  - name: "Elijah"
+    clues:
+      - points: 100
+        answer: "The false god that Israel turned to worship before God sent Elijah"
+        question: "What is Baal?"
+      - points: 200
+        answer: "The wicked king who Elijah told was going to have the rain stopped by God"
+        question: "Who is Ahab?"
+      - points: 300
+        answer: "The response of Baal to the pleadings of all his \"prophets\""
+        question: "What is nothing (he's a fake god)?"
+      - points: 400
+        answer: "The short, true reminder Israel repeated after God defeated Baal's followers"
+        question: "What is \"The Lord, he is God\" (or \"Yahweh is God\")?"
+        verse_lookup: true
+      - points: 500
+        answer: "The thing God empowered Elijah to outrun on the way back to Jezreel"
+        question: "What is a chariot?"
+
+  - name: "Jonah"
+    clues:
+      - points: 100
+        answer: "The city where God called Jonah to go and call out their evil"
+        question: "What is Nineveh?"
+        verse_lookup: true
+      - points: 200
+        answer: "The person that parts of Jonah's story pointed ahead toward"
+        question: "Who is Jesus?"
+      - points: 300
+        answer: "The action Jonah took after being swallowed by a large fish"
+        question: "What is prayer?"
+      - points: 400
+        answer: "The city Jonah initially went toward (away from Nineveh)"
+        question: "What is Tarshish?"
+      - points: 500
+        answer: "The attribute of God that Jonah didn't want to see displayed toward Nineveh"
+        question: "What is mercy?"
+
+final_challenge:
+  category: "Final Challenge"
+  answer: "The King who ultimately fulfilled the promise to David of an eternal kingdom"
+  question: "Who is Jesus?"
