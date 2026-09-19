@@ -410,6 +410,9 @@ const dom = {
   gameTitle:         () => $('game-title'),
   gameBoard:         () => $('game-board'),
   scoreboard:        () => $('scoreboard'),
+  helpBtn:           () => $('help-btn'),
+  helpOverlay:       () => $('help-overlay'),
+  helpCloseBtn:      () => $('help-close-btn'),
   settingsBtn:       () => $('settings-btn'),
   modalOverlay:      () => $('modal-overlay'),
   closeSettingsBtn:  () => $('close-settings-btn'),
@@ -1352,6 +1355,13 @@ function hideConfirm() {
 
 // ── EVENT BINDING ──────────────────────────────────────────
 function bindEvents() {
+  // Help
+  dom.helpBtn().addEventListener('click', () => dom.helpOverlay().classList.remove('hidden'));
+  dom.helpCloseBtn().addEventListener('click', () => dom.helpOverlay().classList.add('hidden'));
+  dom.helpOverlay().addEventListener('click', e => {
+    if (e.target === dom.helpOverlay()) dom.helpOverlay().classList.add('hidden');
+  });
+
   // Settings gear
   dom.settingsBtn().addEventListener('click', openSettings);
   dom.closeSettingsBtn().addEventListener('click', closeSettings);
