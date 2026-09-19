@@ -48,14 +48,22 @@ html, body {
   gap: 10px;
 }
 
-/* Scoreboard */
-#scoreboard-row {
+/* Title bar */
+#title-bar {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
 }
 
+#title-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Scoreboard */
 #scoreboard {
   display: flex;
   justify-content: space-around;
@@ -64,7 +72,7 @@ html, body {
   border: 3px solid var(--gold);
   border-radius: 10px;
   padding: 10px 20px;
-  flex: 1;
+  flex-shrink: 0;
 }
 
 .team-score {
@@ -119,7 +127,6 @@ html, body {
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
   flex-shrink: 0;
-  margin-left: 12px;
 }
 #settings-btn:hover {
   background: var(--gold);
@@ -137,7 +144,6 @@ html, body {
   cursor: pointer;
   transition: background 0.2s, color 0.2s, border-color 0.2s;
   flex-shrink: 0;
-  margin-left: 4px;
 }
 #undo-btn:not(:disabled):hover {
   border-color: var(--wrong);
@@ -738,11 +744,11 @@ html, body {
   text-align: center;
   color: var(--gold);
   font-family: 'Bangers', cursive;
-  font-size: clamp(28px, 4vw, 54px);
-  letter-spacing: 6px;
+  font-size: clamp(22px, 3.5vw, 48px);
+  letter-spacing: 5px;
   text-transform: uppercase;
   text-shadow: 3px 3px 0 rgba(0,0,0,0.5), 0 0 20px rgba(240,192,64,0.4);
-  flex-shrink: 0;
+  flex: 1;
   line-height: 1;
 }
 
