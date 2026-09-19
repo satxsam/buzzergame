@@ -21,6 +21,7 @@
     <div id="game-title">Sunday School Review</div>
     <div id="title-buttons">
       <button id="undo-btn" title="Undo last score change" disabled>&#8617;</button>
+      <button id="answer-key-btn" class="hidden" title="Answer Key / Bible References">&#128214;</button>
       <button id="help-btn" title="How to play">&#63;</button>
       <button id="settings-btn" title="Settings">&#9881;</button>
     </div>
@@ -244,6 +245,21 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     ANSWER KEY POPUP
+     ══════════════════════════════════════════════════════════ -->
+<div id="answer-key-overlay" class="hidden">
+  <div id="answer-key-box">
+    <div id="ak-title">&#128214; Answer Key</div>
+    <div id="ak-qr"></div>
+    <div id="ak-url-row">
+      <span id="ak-url"></span>
+    </div>
+    <a id="ak-open-btn" href="#" target="_blank" rel="noopener">Open in new tab</a>
+    <button id="ak-close-btn">&#10003; Done</button>
   </div>
 </div>
 

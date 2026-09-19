@@ -104,6 +104,9 @@ const state = {
   displayDelayTimer: null,
   questionRevealed: false,
 
+  // Reference doc for current game (relative path under games/)
+  referenceFile: null,
+
   // Timer
   timerRunning: false,
   timerStart: null,
@@ -1279,6 +1282,50 @@ function resetGame() {
   saveSettings(); // closes settings modal and re-renders board
 }
 
+// ── ANSWER KEY ─────────────────────────────────────────────
+function updateAnswerKeyBtn() {
+  const btn = $('answer-key-btn');
+  if (!btn) return;
+  if (state.referenceFile) {
+    btn.classList.remove('hidden');
+  } else {
+    btn.classList.add('hidden');
+  }
+}
+
+function getReferenceUrl() {
+  const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
+  return base + GAMES_BASE.replace(/^\.\//, '') + state.referenceFile;
+}
+
+let qrLoaded = false;
+
+function showAnswerKeyPopup() {
+  if (!state.referenceFile) return;
+  const url = getReferenceUrl();
+  const urlEl = $('ak-url');
+  const qrEl = $('ak-qr');
+  if (urlEl) urlEl.textContent = url;
+  const openBtn = $('ak-open-btn');
+  if (openBtn) openBtn.href = url;
+  if (qrEl) {
+    qrEl.innerHTML = '';
+    const doQr = () => {
+      new QRCode(qrEl, { text: url, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
+    };
+    if (typeof QRCode !== 'undefined') {
+      doQr();
+    } else if (!qrLoaded) {
+      qrLoaded = true;
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+      s.onload = doQr;
+      document.head.appendChild(s);
+    }
+  }
+  $('answer-key-overlay').classList.remove('hidden');
+}
+
 // ── BUILT-IN GAME PICKER ───────────────────────────────────
 const GAMES_BASE = './games/';
 let builtinGames = [];
@@ -1325,8 +1372,11 @@ async function loadSelectedBuiltinGame() {
     const text = await res.text();
     const parsed = parseYAML(text);
     if (!parsed || !parsed.categories) throw new Error('Invalid game file');
+    const game = builtinGames.find(g => g.file === select.value);
+    state.referenceFile = game && game.reference ? game.reference : null;
     clearSession();
     loadGameData(parsed);
+    updateAnswerKeyBtn();
     saveSettings(); // closes settings modal
   } catch(err) {
     alert('Failed to load game: ' + err.message);
@@ -1345,7 +1395,9 @@ function onFileSelected(e) {
     try {
       const parsed = parseYAML(ev.target.result);
       if (!parsed || !parsed.categories) throw new Error('Invalid game file');
+      state.referenceFile = null;
       loadGameData(parsed);
+      updateAnswerKeyBtn();
       checkForResume();
     } catch (err) {
       alert('Failed to load game file: ' + err.message);
@@ -1372,6 +1424,13 @@ function hideConfirm() {
 
 // ── EVENT BINDING ──────────────────────────────────────────
 function bindEvents() {
+  // Answer key
+  $('answer-key-btn').addEventListener('click', showAnswerKeyPopup);
+  $('ak-close-btn').addEventListener('click', () => $('answer-key-overlay').classList.add('hidden'));
+  $('answer-key-overlay').addEventListener('click', e => {
+    if (e.target === $('answer-key-overlay')) $('answer-key-overlay').classList.add('hidden');
+  });
+
   // Help
   dom.helpBtn().addEventListener('click', () => dom.helpOverlay().classList.remove('hidden'));
   dom.helpCloseBtn().addEventListener('click', () => dom.helpOverlay().classList.add('hidden'));
