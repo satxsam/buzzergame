@@ -1280,19 +1280,36 @@ function resetGame() {
 }
 
 // ── BUILT-IN GAME PICKER ───────────────────────────────────
+const GAMES_BASE = './games/';
+let builtinGames = [];
+
 async function loadBuiltinGamesList() {
   try {
-    const res = await fetch('./games.json');
+    const res = await fetch(GAMES_BASE + 'games.json');
     if (!res.ok) return;
-    const games = await res.json();
+    builtinGames = await res.json();
     const select = $('builtin-game-select');
     const section = $('builtin-games-section');
-    if (!games.length || !select || !section) return;
-    select.innerHTML = games.map((g, i) =>
+    if (!builtinGames.length || !select || !section) return;
+    select.innerHTML = builtinGames.map(g =>
       `<option value="${escHtml(g.file)}">${escHtml(g.title)}</option>`
     ).join('');
     section.classList.remove('hidden');
+    updateReferenceLink();
   } catch(e) {}
+}
+
+function updateReferenceLink() {
+  const select = $('builtin-game-select');
+  const link = $('reference-link');
+  if (!select || !link) return;
+  const game = builtinGames.find(g => g.file === select.value);
+  if (game && game.reference) {
+    link.href = GAMES_BASE + game.reference;
+    link.classList.remove('hidden');
+  } else {
+    link.classList.add('hidden');
+  }
 }
 
 async function loadSelectedBuiltinGame() {
@@ -1303,7 +1320,7 @@ async function loadSelectedBuiltinGame() {
   btn.textContent = 'Loading…';
   btn.disabled = true;
   try {
-    const res = await fetch('./' + select.value);
+    const res = await fetch(GAMES_BASE + select.value);
     if (!res.ok) throw new Error('Could not fetch game file');
     const text = await res.text();
     const parsed = parseYAML(text);
@@ -1378,6 +1395,8 @@ function bindEvents() {
   // Built-in game picker
   loadBuiltinGamesList();
   $('load-builtin-btn').addEventListener('click', loadSelectedBuiltinGame);
+  const builtinSelect = $('builtin-game-select');
+  if (builtinSelect) builtinSelect.addEventListener('change', updateReferenceLink);
 
   // Reset scores
   dom.resetScoresBtn().addEventListener('click', resetScores);
