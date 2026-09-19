@@ -223,6 +223,7 @@
       <div class="settings-btn-row">
         <button class="settings-action-btn" id="load-game-btn">&#128193; Load YAML File</button>
         <button class="settings-action-btn" id="reset-scores-btn">&#9851; Reset Scores</button>
+        <button class="settings-action-btn" id="reset-game-btn">&#9654;&#9654; New Game</button>
         <button class="settings-action-btn" id="close-settings-btn">&#10003; Done</button>
       </div>
     </div>
@@ -232,6 +233,20 @@
 
 <!-- Hidden file input -->
 <input type="file" id="file-input" accept=".yaml,.yml" />
+
+<!-- ══════════════════════════════════════════════════════════
+     RESUME DIALOG
+     ══════════════════════════════════════════════════════════ -->
+<div id="resume-overlay" class="hidden">
+  <div id="resume-box">
+    <div id="resume-title">Resume last game?</div>
+    <div id="resume-scores"></div>
+    <div class="resume-btns">
+      <button id="resume-yes">&#9654; Resume</button>
+      <button id="resume-no">Start Fresh</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      CONFIRMATION DIALOG
