@@ -488,6 +488,64 @@ function init() {
 }
 
 const STORAGE_KEY = 'ssreview.defaultGame';
+const SESSION_KEY  = 'ssreview.session';
+
+function saveSession() {
+  if (!state.game) return;
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      gameTitle: state.game.title,
+      scores:    [...state.scores],
+      usedCells: state.usedCells.map(row => [...row])
+    }));
+  } catch(e) {}
+}
+
+function clearSession() {
+  try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
+}
+
+function checkForResume() {
+  try {
+    const saved = localStorage.getItem(SESSION_KEY);
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    if (!data || data.gameTitle !== state.game?.title) return;
+    // Don't prompt if nothing has actually happened yet
+    const anyUsed = data.usedCells?.some(row => row.some(v => v));
+    const anyScore = data.scores?.some(s => s !== 0);
+    if (!anyUsed && !anyScore) return;
+    showResumePrompt(data);
+  } catch(e) {}
+}
+
+function showResumePrompt(data) {
+  const scoresEl = document.getElementById('resume-scores');
+  scoresEl.innerHTML = state.settings.teamNames.map((name, i) =>
+    `<div class="resume-score-row">
+       <span>${escHtml(name)}</span>
+       <span class="resume-pts">${formatScore(data.scores[i] ?? 0)}</span>
+     </div>`
+  ).join('');
+  document.getElementById('resume-overlay').classList.remove('hidden');
+
+  document.getElementById('resume-yes').onclick = () => {
+    state.scores    = data.scores;
+    state.usedCells = data.usedCells;
+    // Dim used cells on the already-rendered board
+    document.querySelectorAll('.clue-cell').forEach(cell => {
+      const c = Number(cell.dataset.cat), r = Number(cell.dataset.clue);
+      if (state.usedCells[c]?.[r]) cell.classList.add('used');
+    });
+    updateScoreboard();
+    document.getElementById('resume-overlay').classList.add('hidden');
+  };
+
+  document.getElementById('resume-no').onclick = () => {
+    clearSession();
+    document.getElementById('resume-overlay').classList.add('hidden');
+  };
+}
 
 function loadInitialGame() {
   try {
@@ -496,11 +554,13 @@ function loadInitialGame() {
       const parsed = JSON.parse(saved);
       if (parsed && parsed.categories) {
         loadGameData(parsed);
+        checkForResume();
         return;
       }
     }
   } catch (e) {}
   loadGameData(DEFAULT_GAME);
+  checkForResume();
 }
 
 function saveAsDefault() {
@@ -607,6 +667,7 @@ function undoScores() {
   const btn = dom.undoBtn();
   if (btn) btn.disabled = true;
   updateScoreboard();
+  saveSession();
 }
 
 function editScore(teamIdx) {
@@ -629,6 +690,7 @@ function editScore(teamIdx) {
     if (!isNaN(val) && val !== current) {
       saveScoreSnapshot();
       state.scores[teamIdx] = val;
+      saveSession();
     }
     el.innerHTML = ''; // clear input before updateScoreboard runs its guard
     updateScoreboard();
@@ -768,6 +830,7 @@ function toggleVerseAward(teamIdx, btn) {
     popScore(teamIdx);
   }
   updateScoreboard();
+  saveSession();
 }
 
 function closeClueScreen(markUsed = true) {
@@ -784,6 +847,7 @@ function closeClueScreen(markUsed = true) {
     }
   }
 
+  if (markUsed) saveSession();
   stopTimer();
   resetBuzzerState();
   const wasFinalChallenge = state.isFinalChallenge;
@@ -861,6 +925,7 @@ function showGameOver() {
 function closeGameOver() {
   dom.gameoverScreen().classList.add('hidden');
   state.scores = state.scores.map(() => 0);
+  clearSession();
   updateScoreboard();
 }
 
@@ -1213,6 +1278,7 @@ function onFileSelected(e) {
     try {
       const parsed = parseYAML(ev.target.result);
       if (!parsed || !parsed.categories) throw new Error('Invalid game file');
+      clearSession();
       loadGameData(parsed);
     } catch (err) {
       alert('Failed to load game file: ' + err.message);
