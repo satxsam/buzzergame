@@ -1269,6 +1269,13 @@ function resetScores() {
   updateScoreboard();
 }
 
+function resetGame() {
+  state.scores = [0, 0, 0];
+  state.usedCells = state.game.categories.map(cat => cat.clues.map(() => false));
+  clearSession();
+  saveSettings(); // closes settings modal and re-renders board
+}
+
 // ── YAML FILE LOADING ──────────────────────────────────────
 function onFileSelected(e) {
   const file = e.target.files[0];
@@ -1320,6 +1327,7 @@ function bindEvents() {
 
   // Reset scores
   dom.resetScoresBtn().addEventListener('click', resetScores);
+  $('reset-game-btn').addEventListener('click', resetGame);
 
   // Final Challenge
   dom.finalChallengeBtn().addEventListener('click', openFinalChallenge);
