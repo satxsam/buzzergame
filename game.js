@@ -1278,8 +1278,8 @@ function onFileSelected(e) {
     try {
       const parsed = parseYAML(ev.target.result);
       if (!parsed || !parsed.categories) throw new Error('Invalid game file');
-      clearSession();
       loadGameData(parsed);
+      checkForResume();
     } catch (err) {
       alert('Failed to load game file: ' + err.message);
     }
