@@ -1276,6 +1276,46 @@ function resetGame() {
   saveSettings(); // closes settings modal and re-renders board
 }
 
+// ── BUILT-IN GAME PICKER ───────────────────────────────────
+async function loadBuiltinGamesList() {
+  try {
+    const res = await fetch('./games.json');
+    if (!res.ok) return;
+    const games = await res.json();
+    const select = $('builtin-game-select');
+    const section = $('builtin-games-section');
+    if (!games.length || !select || !section) return;
+    select.innerHTML = games.map((g, i) =>
+      `<option value="${escHtml(g.file)}">${escHtml(g.title)}</option>`
+    ).join('');
+    section.classList.remove('hidden');
+  } catch(e) {}
+}
+
+async function loadSelectedBuiltinGame() {
+  const select = $('builtin-game-select');
+  if (!select || !select.value) return;
+  const btn = $('load-builtin-btn');
+  const origText = btn.textContent;
+  btn.textContent = 'Loading…';
+  btn.disabled = true;
+  try {
+    const res = await fetch('./' + select.value);
+    if (!res.ok) throw new Error('Could not fetch game file');
+    const text = await res.text();
+    const parsed = parseYAML(text);
+    if (!parsed || !parsed.categories) throw new Error('Invalid game file');
+    clearSession();
+    loadGameData(parsed);
+    saveSettings(); // closes settings modal
+  } catch(err) {
+    alert('Failed to load game: ' + err.message);
+  } finally {
+    btn.textContent = origText;
+    btn.disabled = false;
+  }
+}
+
 // ── YAML FILE LOADING ──────────────────────────────────────
 function onFileSelected(e) {
   const file = e.target.files[0];
@@ -1324,6 +1364,10 @@ function bindEvents() {
   // File loading
   dom.loadGameBtn().addEventListener('click', () => dom.fileInput().click());
   dom.fileInput().addEventListener('change', onFileSelected);
+
+  // Built-in game picker
+  loadBuiltinGamesList();
+  $('load-builtin-btn').addEventListener('click', loadSelectedBuiltinGame);
 
   // Reset scores
   dom.resetScoresBtn().addEventListener('click', resetScores);
