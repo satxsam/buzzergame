@@ -1839,32 +1839,33 @@ html, body {
 
 /* ── LANDSCAPE PHONE (short viewport) ────────────────────── */
 @media (max-height: 500px) {
-  #board-screen { padding: 4px; gap: 4px; }
+  #board-screen { padding: 3px; gap: 3px; }
 
-  #game-title { font-size: clamp(14px, 4vw, 26px); letter-spacing: 3px; }
+  #title-bar { min-height: 0; }
+  #game-title { font-size: clamp(12px, 3.5vw, 22px); letter-spacing: 2px; }
+  #title-buttons button { width: 30px; height: 30px; font-size: 14px; }
 
-  #title-buttons button { width: 34px; height: 34px; font-size: 16px; }
+  #scoreboard { padding: 2px 8px; border-width: 2px; border-radius: 7px; }
+  .team-name   { font-size: 10px; letter-spacing: 0; }
+  .team-points { font-size: clamp(16px, 3.5vw, 26px); }
+  .score-divider { height: 24px; }
 
-  #scoreboard { padding: 4px 10px; }
-  .team-name  { font-size: 11px; }
-  .team-points { font-size: clamp(18px, 4vw, 30px); }
-  .score-divider { height: 32px; }
-
-  #game-board { gap: 4px; }
+  #game-board { gap: 3px; }
 
   .category-header {
-    font-size: clamp(10px, 1.8vw, 16px);
-    padding: 4px;
-    border-radius: 6px;
+    font-size: clamp(9px, 1.5vw, 14px);
+    padding: 3px;
+    border-radius: 5px;
     border-width: 2px;
+    line-height: 1.1;
   }
 
   .clue-cell {
-    font-size: clamp(14px, 2.8vw, 28px);
-    border-radius: 6px;
+    font-size: clamp(12px, 2.4vw, 24px);
+    border-radius: 5px;
     border-width: 2px;
   }
 
-  #final-challenge-row { gap: 6px; }
-  #final-challenge-btn, #edit-game-btn { padding: 6px 12px; font-size: 13px; }
+  #final-challenge-row { gap: 4px; }
+  #final-challenge-btn, #edit-game-btn { padding: 4px 10px; font-size: 12px; border-radius: 6px; }
 }
