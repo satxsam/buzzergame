@@ -1836,3 +1836,35 @@ html, body {
 
 /* file input hidden */
 #file-input { display: none; }
+
+/* ── LANDSCAPE PHONE (short viewport) ────────────────────── */
+@media (max-height: 500px) {
+  #board-screen { padding: 4px; gap: 4px; }
+
+  #game-title { font-size: clamp(14px, 4vw, 26px); letter-spacing: 3px; }
+
+  #title-buttons button { width: 34px; height: 34px; font-size: 16px; }
+
+  #scoreboard { padding: 4px 10px; }
+  .team-name  { font-size: 11px; }
+  .team-points { font-size: clamp(18px, 4vw, 30px); }
+  .score-divider { height: 32px; }
+
+  #game-board { gap: 4px; }
+
+  .category-header {
+    font-size: clamp(10px, 1.8vw, 16px);
+    padding: 4px;
+    border-radius: 6px;
+    border-width: 2px;
+  }
+
+  .clue-cell {
+    font-size: clamp(14px, 2.8vw, 28px);
+    border-radius: 6px;
+    border-width: 2px;
+  }
+
+  #final-challenge-row { gap: 6px; }
+  #final-challenge-btn, #edit-game-btn { padding: 6px 12px; font-size: 13px; }
+}
